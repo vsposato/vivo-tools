@@ -1,12 +1,12 @@
 #!/usr/bin/php
 
 <?php
-/*
+
 // Retrieve command line options from user
-$commandOptions = getopt("u:s:o:p:");
+$commandOptions = getopt("u:s:o:p:e");
 
 // If the user didn't send exactly 3 values show usage and exit
-if (count($commandOptions) != 3) {
+if (count($commandOptions) < 4) {
 	printUsage();
 	exit;
 }
@@ -21,6 +21,11 @@ $outputFileName = $commandOptions['o'];
 $baseURL = '';
 $baseURL = $commandOptions['u'];
 
+// $uniqueDataOnly - this is to determine whether we clean duplicates out of the parameter array or not
+// Since it doesn't take a value - we just need to make sure if the 'e' key isset
+$uniqueDataOnly = false;
+$uniqueDataOnly = isset($commandOptions['e']) ? true : false;
+
 // $outputFormat - this is the output format that we will be receiving from the SPARQL endpoint
 // TODO - We currently only support XML - may consider other options
 $outputFormat = '&output=xml';
@@ -31,31 +36,25 @@ $parameterFile = $commandOptions['p'];
 
 // $sparqlFileName - this is the name of the file that holds the SPARQL query
 $sparqlFileName = '';
-$sparqlFileName = $commandOptions['s']; */
-
-$sparqlFileName = '/Users/vsposato/personRDF.sparql';
+$sparqlFileName = $commandOptions['s'];
 
 // Retrieve the query from the provided SPARQL filename
 $query = readSparqlFile($sparqlFileName);
 
-$outputFileName = '/Users/vsposato/testRDF.xml';
-$outputFormat = '&output=xml';
-$baseURL = 'http://sparql.vivo.ufl.edu:3030/VIVO/query?query=';
-$parameterFile = '/Users/vsposato/testParameter.csv';
+// Parse the parameter file and make an array that will hold the parameters
 $parameterArray = readParameterFile($parameterFile);
-$dataArray = removeHeaderRows($parameterArray, 2);
+
+// Create a parameter data only array to hold the replacement values to be used
+$dataArray = removeHeaderRows($parameterArray, 2, $uniqueDataOnly);
+
+// Create a header array that will contain the variable, data type, and index
 $headerArray = createHeaderArray($parameterArray[0], $parameterArray[1]);
 
-createRDFfromQuery($headerArray, $dataArray, $query, $baseURL, $outputFormat);
+// Return the results of the queries to a string to be output to a file
+$xmlOutput = createRDFfromQuery($headerArray, $dataArray, $query, $baseURL, $outputFormat);
 
 // Retrieve the current microtime so that we can calulate length of time it took
-$startTime = microtime(true);
-
-/*
-echo "<pre>";
-print_r($outputArray);
-echo "</pre>";
-*/
+$startTime = microtime_float();
 
 // Determine if the file exists
 if (file_exists($outputFileName)) {
@@ -73,13 +72,10 @@ if (file_exists($outputFileName)) {
 	$fileHandle = fopen($outputFileName,'x');
 }
 
-
 // Determine if the file was opened correctly
 if ($fileHandle) {
-	// If the file was opened properly, then output the data row by row
-	foreach ($outputArray as $row) {
-		fputcsv($fileHandle, $row);
-	}
+	// If the file was opened properly, then output the xml
+	fputs($fileHandle, $xmlOutput);
 	// Close the file handle
 	fclose($fileHandle);
 } else {
@@ -88,7 +84,7 @@ if ($fileHandle) {
 }
 
 // Capture the current time in Unix timestamp
-$endTime = microtime(true);
+$endTime = microtime_float();
 // Calculate number of seconds for execution and output it
 $timeToComplete = $endTime - $startTime;
 echo "It took " . $timeToComplete . " seconds to complete this operation! \n";
@@ -107,6 +103,7 @@ function printUsage() {
 	echo "-s The path to the file containing your SPARQL query \n";
 	echo "-o The path to the file you want to output to \n";
 	echo "-p The path to the parameter CSV file you want to use to fill out your query \n";
+	echo "-e A boolean as to whether you want to remove duplicate data elements from the parameter file input \n";
 	echo "\n";
 }
 
@@ -125,7 +122,6 @@ function readSparqlFile($sparqlFile) {
 		echo "SPARQL query file does not exists - $sparqlFile";
 		return false;
 	}
-
 	try {
 		// Open the SPARQL query file
 		$sparqlFileHandle = fopen($sparqlFile, 'r');
@@ -139,7 +135,6 @@ function readSparqlFile($sparqlFile) {
 		}
 		// Return the SPARQL query back to the calling function
 		return $sparqlQuery;
-
 	} catch (Exception $e) {
 		// Something happened and we couldn't complete the SPARQL query string so display the exception and exit
 		echo "Exception in readSparqlFile function - $e";
@@ -163,7 +158,6 @@ function readParameterFile($parameterFile) {
 		echo "Parameter file does not exists - $$parameterFile";
 		return false;
 	}
-
 	try {
 		// Open the Parameter file
 		$parameterFileHandle = fopen($parameterFile, 'r');
@@ -190,59 +184,106 @@ function readParameterFile($parameterFile) {
  * createRDFfromQuery function.
  *
  * @access public
- * @param mixed $parameterArray
- * @param mixed $query
- * @param mixed $baseURL
- * @param mixed $outputFormat
- * @return void
+ * @param array $parameterArray
+ * @param string $query
+ * @param string $baseURL
+ * @param string $outputFormat
+ * @return string
  */
 function createRDFfromQuery($headerArray, $dataOnly, $query, $baseURL, $outputFormat) {
 
 	// Create the master XML string
-	$resultRDF = '';
-	
+	$resultRDF = new DOMDocument('1.0');
+
 	// Initialize a counter variable
 	$rowCounter = 0;
-	
+
+	// Loop through each of the rows of data provided
 	foreach ($dataOnly as $row) {
+		// Replace parameters within query with values from data array
 		$tempQuery = parameterizeQuery($headerArray, $query, $row);
+		// Temporary variable to hold the RDF response from SPARQL
 		$tempRDF = performSPARQLQuery(createFullURL($baseURL, $tempQuery, $outputFormat));
 		if ($rowCounter == 0) {
-			$resultRDF .= processRDF($tempRDF, false);
+			// If this is the first time through (or first result) then we need to keep the entire document as it has important namespace information
+			try {
+				// Attempt to run the processRDF and get results back
+				$returnedXML = processRDF($tempRDF, false);
+				if (is_string($returnedXML)) {
+					// If it returns a String then this is good so process away
+					$resultRDF->loadXML($returnedXML);
+					// Increment the rowCounter so we can keep track of how many times through
+					$rowCounter++;
+				}
+			} catch (Exception $e) {
+				// Catch any exceptions that may come through - although we need to probably make this a little more robust
+				echo "Returned a null result from processRDF - probably didn't find a match - $e";
+				continue;
+			}
 		} elseif ($rowCounter >= 1) {
-			$resultRDF .= processRDF($tempRDF, true);
+			// If this is not our first time throught (or first result) then we need only the child node of the results
+			try {
+				// Attempt to run the processRDF and get results back
+				$returnedXML = processRDF($tempRDF, true);
+				if (is_object($returnedXML)) {
+					// If the processRDF returned an object - then we are good to continue processing - append this child to overall document
+					$resultRDF->documentElement->appendChild($returnedXML);
+					// Increment the rowCounter so we can keep track of how many times through
+					$rowCounter++;
+				}
+			} catch (Exception $e) {
+				// Catch any exceptions that may come through - although we need to probably make this a little more robust
+				echo "Returned a null result from processRDF - probably didn't find a match - $e";
+				continue;
+			}
 		}
-		/*echo "<pre>";
-		print_r($tempQuery);
-		echo "</pre>";
-		echo "<pre>";
-		print_r($tempRDF);
-		echo "</pre>";*/
-				
 	}
-	exit;
+	// Return the resultant DOMDocument as XML so we can save it to a file
+	return $resultRDF->saveXML();
 }
 
 
+/**
+ * processRDF function.
+ *
+ * @access public
+ * @param xml $inputRDF
+ * @param boolean $stripHeaders
+ * @return DOMNode or string
+ */
 function processRDF($inputRDF, $stripHeaders) {
-/*	$rdfResult = new XMLReader();
+	// Instantiate the XML reader
+	$rdfResult = new XMLReader();
+	// Load the RDF passed in to the XML reader
 	$rdfResult->XML($inputRDF, "UTF-8");
-	$rdfResult->read(); */
-
-	$rdfResult = simplexml_load_string($inputRDF);
-	foreach ($rdfResult->children() as $child) {
-		var_dump($child);
+	// Check to see if we are supposed to remove the header information
+	if ($stripHeaders) {
+		// We are removing all the beginning header information
+		// Loop through the XML tree to find what we are looking for
+		while ($rdfResult->read()) {
+			// Check to see if this is an ELEMENT node as opposed to a TEXT or attribute
+			if ($rdfResult->nodeType == XMLReader::ELEMENT) {
+				// Check to see if it is a description node - as this will hold the guts of the data
+				if ($rdfResult->localName === "Description") {
+					// Return the node back to the calling function
+					return $rdfResult->expand();
+				}
+			}
+		}
+	} elseif (! $stripHeaders) {
+		// We are not supposed to remove headers so send the entire XML document back
+		$rdfResult->read();
+		return $rdfResult->readOuterXML();
 	}
 }
-
 /**
  * createFullURL function.
  *
  * @access public
- * @param mixed $baseURL
- * @param mixed $query
- * @param mixed $outputFormat
- * @return void
+ * @param string $baseURL
+ * @param string $query
+ * @param string $outputFormat
+ * @return string URL
  */
 function createFullURL($baseURL, $query, $outputFormat) {
 
@@ -286,7 +327,7 @@ function performSPARQLQuery($fullURL) {
 /*	echo "<pre>";
 	print_r($$curlReturn);
 	echo "</pre>"; */
-	
+
 	return $curlReturn;
 
 }
@@ -361,9 +402,9 @@ function parameterizeQuery($headerRow, $query, $dataRow) {
 		// Run the string replace using the needle and replacement created
 		$parameterizedQuery = str_replace($needle, $replacement, $parameterizedQuery);
 	}
-/*	echo "<pre>";
+	/*echo "<pre>";
 	print_r($parameterizedQuery);
-	echo "</pre>"; */
+	echo "</pre>";*/
 
 	// Return the query to the calling function
 	return $parameterizedQuery;
@@ -371,26 +412,46 @@ function parameterizeQuery($headerRow, $query, $dataRow) {
 
 /**
  * removeHeaderRows function.
- * 
+ *
  * @access public
  * @param array $parameterArray
  * @param int $numOfHeaderRows
  * @return array $dataOnly
  */
-function removeHeaderRows($parameterArray, $numOfHeaderRows) {
+function removeHeaderRows($parameterArray, $numOfHeaderRows, $uniqueDataOnly) {
 	// Set up a new array to hold the cleaned data
 	$dataOnly = array();
 
-	// Get the count of the elements in the array - 
+	// Get the count of the elements in the array -
 	$arrayElementCount = (count($parameterArray) - 1);
 
 	// Loop through the elements starting with 2 to get rid of the header rows
-	for ($i = $numOfHeaderRows; $i <= $arrayElementCount; $i++) {
+	for ($i = $numOfHeaderRows; $i < $arrayElementCount; $i++) {
 		// Add the row to the new data only array
 		$dataOnly[] = $parameterArray[$i];
 	}
-	
-	// Return the new data only array to the calling function
-	return $dataOnly;
+	if ($uniqueDataOnly) {
+		// Return a unique value only array
+		return $dataOnly;
+	} elseif (! $uniqueDataOnly) {
+		// Return the new data only array to the calling function
+		return $dataOnly;
+	}
+}
+
+/**
+ * removeDuplicatesFromDataParameters function.
+ *
+ * @access public
+ * @param array $dataArray
+ * @return array
+ */
+function removeDuplicatesFromDataParameters($dataArray) {
+	// Clean out duplicate values from our array
+	//return array_unique($dataArray, SORT_STRING);
+}
+function microtime_float(){
+	list($usec, $sec) = explode(" ", microtime());
+	return ((float)$usec + (float)$sec);
 }
 ?>
