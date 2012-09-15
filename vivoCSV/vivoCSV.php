@@ -33,7 +33,7 @@ $sparqlFileName = $commandOptions['s'];
 $query = readSparqlFile($sparqlFileName);
 
 // Retrieve the current microtime so that we can calulate length of time it took
-$startTime = microtime(true);
+$startTime = microtime_float();
 
 // URL encode the query so that we can pass it as part of the URL
 $query = urlencode($query);
@@ -90,7 +90,7 @@ if (file_exists($outputFileName)) {
 	}
 } elseif (! file_exists($outputFileName)) {
 	// If the file doesn't already exist - create it and open it for writing
-	$fileHandle = fopen($outputFileName,'x');	
+	$fileHandle = fopen($outputFileName,'x');
 }
 
 
@@ -100,7 +100,7 @@ if ($fileHandle) {
 	foreach ($outputArray as $row) {
 		fputcsv($fileHandle, $row);
 	}
-	// Close the file handle 
+	// Close the file handle
 	fclose($fileHandle);
 } else {
 	// If the file was not opened properly - exit out
@@ -108,14 +108,14 @@ if ($fileHandle) {
 }
 
 // Capture the current time in Unix timestamp
-$endTime = microtime(true);
+$endTime = microtime_float();
 // Calculate number of seconds for execution and output it
 $timeToComplete = $endTime - $startTime;
 echo "It took " . $timeToComplete . " seconds to complete this operation! \n";
 
 // Function to build individual data rows based upon the headers provided
 function csvDataRowBuilder($headerRow, $dataLine) {
-	
+
 	// Create fresh array to return to calling function
 	$dataRow = array();
 
@@ -129,7 +129,7 @@ function csvDataRowBuilder($headerRow, $dataLine) {
 			} else {
 				$dataRow[] = $dataLine[$value]['value'];
 			}
-			
+
 		} elseif (! array_key_exists($value, $dataLine)) {
 			// If it does not - then output a null value so that we keep the same number of columns on every row
 			$dataRow[] = null;
@@ -139,7 +139,7 @@ function csvDataRowBuilder($headerRow, $dataLine) {
 	return $dataRow;
 }
 function csvHeaderRowBuilder($headerRow) {
-	
+
 	// Create fresh array to return to calling function
 	$headerReturnRow = array();
 	// We have to take the headerRow and determine if the results data has all the appropriate fields
@@ -159,28 +159,28 @@ function printUsage() {
 	echo "\n";
 }
 function readSparqlFile($sparqlFile) {
-	
+
 	// First check to see that the file exists
 	if (! file_exists($sparqlFile)) {
 		// If it doesn't exist then error out
 		echo "SPARQL query file does not exists - $sparqlFile";
 		return false;
 	}
-	
+
 	try {
 		// Open the SPARQL query file
 		$sparqlFileHandle = fopen($sparqlFile, 'r');
-		
+
 		// Initialize a blanke SPARQL query string
 		$sparqlQuery = '';
-		
+
 		while (! feof($sparqlFileHandle) ) {
-			// Get a line of data from the file and append it it to the SPARQL query string	
+			// Get a line of data from the file and append it it to the SPARQL query string
 			$sparqlQuery .= fgets($sparqlFileHandle);
 		}
 		// Return the SPARQL query back to the calling function
 		return $sparqlQuery;
-				
+
 	} catch (Exception $e) {
 		// Something happened and we couldn't complete the SPARQL query string so display the exception and exit
 		echo "Exception in readSparqlFile function - $e";
@@ -188,5 +188,8 @@ function readSparqlFile($sparqlFile) {
 		exit;
 	}
 }
-
+function microtime_float(){
+	list($usec, $sec) = explode(" ", microtime());
+	return ((float)$usec + (float)$sec);
+}
 ?>
