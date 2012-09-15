@@ -43,26 +43,13 @@ $outputFormat = '&output=xml';
 $baseURL = 'http://sparql.vivo.ufl.edu:3030/VIVO/query?query=';
 $parameterFile = '/Users/vsposato/testParameter.csv';
 $parameterArray = readParameterFile($parameterFile);
+$dataArray = removeHeaderRows($parameterArray, 2);
 $headerArray = createHeaderArray($parameterArray[0], $parameterArray[1]);
 
-parameterizeQuery($headerArray, $query, $parameterArray[2]);
-exit;
+createRDFfromQuery($headerArray, $dataArray, $query, $baseURL, $outputFormat);
 
 // Retrieve the current microtime so that we can calulate length of time it took
 $startTime = microtime(true);
-
-
-
-// Initialize a blank array for the final results to be placed in
-$outputArray = array();
-// Set the header row to appropriate column headers
-$outputArray[] = csvHeaderRowBuilder($sparqlArray['head']['vars']);
-
-// Parse each row of data to be turned into a row in the CSV
-foreach ($sparqlArray['results']['bindings'] as $row) {
-	// Append the next row in a well-formatted CSV file
-	$outputArray[] = csvDataRowBuilder($sparqlArray['head']['vars'], $row);
-}
 
 /*
 echo "<pre>";
@@ -209,8 +196,43 @@ function readParameterFile($parameterFile) {
  * @param mixed $outputFormat
  * @return void
  */
-function createRDFfromQuery($parameterArray, $query, $baseURL, $outputFormat) {
+function createRDFfromQuery($headerArray, $dataOnly, $query, $baseURL, $outputFormat) {
 
+	// Create the master XML string
+	$resultRDF = '';
+	
+	// Initialize a counter variable
+	$rowCounter = 0;
+	
+	foreach ($dataOnly as $row) {
+		$tempQuery = parameterizeQuery($headerArray, $query, $row);
+		$tempRDF = performSPARQLQuery(createFullURL($baseURL, $tempQuery, $outputFormat));
+		if ($rowCounter == 0) {
+			$resultRDF .= processRDF($tempRDF, false);
+		} elseif ($rowCounter >= 1) {
+			$resultRDF .= processRDF($tempRDF, true);
+		}
+		/*echo "<pre>";
+		print_r($tempQuery);
+		echo "</pre>";
+		echo "<pre>";
+		print_r($tempRDF);
+		echo "</pre>";*/
+				
+	}
+	exit;
+}
+
+
+function processRDF($inputRDF, $stripHeaders) {
+/*	$rdfResult = new XMLReader();
+	$rdfResult->XML($inputRDF, "UTF-8");
+	$rdfResult->read(); */
+
+	$rdfResult = simplexml_load_string($inputRDF);
+	foreach ($rdfResult->children() as $child) {
+		var_dump($child);
+	}
 }
 
 /**
@@ -264,7 +286,7 @@ function performSPARQLQuery($fullURL) {
 /*	echo "<pre>";
 	print_r($$curlReturn);
 	echo "</pre>"; */
-
+	
 	return $curlReturn;
 
 }
@@ -346,13 +368,29 @@ function parameterizeQuery($headerRow, $query, $dataRow) {
 	// Return the query to the calling function
 	return $parameterizedQuery;
 }
-function removeHeaderRows($parameterArray) {
+
+/**
+ * removeHeaderRows function.
+ * 
+ * @access public
+ * @param array $parameterArray
+ * @param int $numOfHeaderRows
+ * @return array $dataOnly
+ */
+function removeHeaderRows($parameterArray, $numOfHeaderRows) {
 	// Set up a new array to hold the cleaned data
 	$dataOnly = array();
 
-	$arrayElementCount = count($parameterArray) - 2;
+	// Get the count of the elements in the array - 
+	$arrayElementCount = (count($parameterArray) - 1);
 
-	for ($i = 2, )
-
+	// Loop through the elements starting with 2 to get rid of the header rows
+	for ($i = $numOfHeaderRows; $i <= $arrayElementCount; $i++) {
+		// Add the row to the new data only array
+		$dataOnly[] = $parameterArray[$i];
+	}
+	
+	// Return the new data only array to the calling function
+	return $dataOnly;
 }
 ?>
