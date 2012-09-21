@@ -1,18 +1,11 @@
 <div class="row-fluid">
 	<div class="span12">
-		<div class="span4 offset4">
-			<fieldset>
-				<?php
-					echo $this->BootstrapForm->create('User', array('action' => 'login', 'class' => 'form-horizontal'));
-				?>
-				<legend>User Login</legend>
-				<?php
-					echo $this->BootstrapForm->input('username');
-					echo $this->BootstrapForm->input('password');
-					echo $this->BootstrapForm->submit('Submit', array('class' => 'btn btn-primary btn-large'));
-					echo $this->BootstrapForm->end();
-				?>
-			</fieldset>
+		<div class="hero-unit">
+			<h1>VIVO Management Tools Suite</h1>
+			<p>We have assembled several tools into one location to make management of VIVO easier, and more user friendly.</p>
+			<?php if ( ! AuthComponent::user('id') ) {
+				echo $this->BootstrapHtml->link('Shibboleth Sign-In', 'http://web-server.homelinux.net/secure', array('escape' => false, 'class' => 'btn btn-large btn-primary pull-right'));
+			} ?>
 		</div>
 	</div>
 </div>
