@@ -7,6 +7,7 @@
 				?>
 				<legend>User Login</legend>
 				<?php
+
 					echo $this->BootstrapForm->input('username');
 					echo $this->BootstrapForm->input('password');
 					echo $this->BootstrapForm->submit('Submit', array('class' => 'btn btn-primary btn-large'));
