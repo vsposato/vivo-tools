@@ -35,7 +35,7 @@ define('DATABASE_USER_ID', 1); // user_id of the default database User
 define('MIN_PASSWORD_LENGTH', 8); // Minimum password length
 define('PASSWORD_EXPIRATION_DAYS', (90 * 24 * 60 * 60)); // When will the password expire?
 define('FULL_ACCESS_GROUPS', "1"); //What groups have full unrestricted access
-define('ADMIN_GROUPS', "1,2"); //What groups have full unrestricted access
+define('ADMIN_GROUPS', "1"); //What groups have full unrestricted access
 
 // the amount of time in seconds that must pass before an account may be
 // disabled for exceeding MAX_LOGIN_ATTEMPTS login attempts
@@ -47,5 +47,8 @@ define('US_COUNTRY_ID', 230);
 
 // variables for email bass password/username recovery
 define('TICKET_TIME_HOURS', 72);
+
+// Variable to control shibboleth login
+define('SHIBBOLETH_REQUIRED', false);
 
 ?>

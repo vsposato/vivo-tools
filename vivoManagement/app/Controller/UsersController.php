@@ -164,8 +164,19 @@ class UsersController extends AppController {
 	public function login() {
 		if ($this->request->is('post')) {
 			if ($this->Auth->login()) {
-				$this->redirect($this->Auth->redirect());
-				return;
+				// Read the authenticated user_error
+				$userSession = $this->Session->read('Auth.User');
+				// Explode out the list of Full Access Administrative groups from the Constants
+				$fullAccessGroups = explode(",", FULL_ACCESS_GROUPS);
+				if ( in_array($userSession['group_id'], $fullAccessGroups) ) {
+					$this->Session->write('FULL_ACCESS_GRANTED',true);
+					$this->redirect($this->Auth->redirect());
+					return;
+				} else {
+					$this->redirect($this->Auth->redirect());
+					return;
+				}
+
 			} else {
 				$this->Session->setFlash(__('Your %s or %s was incorrect.', __('username'), __('password')),
 					'alert',
@@ -175,6 +186,11 @@ class UsersController extends AppController {
 					)
 				);
 			}
+		}
+		if (SHIBBOLETH_REQUIRED) {
+			$this->render('login_shibboleth');
+		} elseif (! SHIBBOLETH_REQUIRED) {
+			$this->render('login_normal');
 		}
 
 	}

@@ -181,15 +181,16 @@
  */
 	Configure::write('Session', array(
 		'defaults' => 'database',
-		'cookie' => 'cakeBlankNew',
-		'timeout' => '15',
+		'cookie' => 'vivoManagement',
+		'timeout' => '120',
 		'checkAgent' => true,
+		'autoRegenerate' => true
 	));
 
 /**
  * The level of CakePHP security.
  */
-	Configure::write('Security.level', 'medium');
+	Configure::write('Security.level', 'low');
 
 /**
  * A random string used in security hashing methods.

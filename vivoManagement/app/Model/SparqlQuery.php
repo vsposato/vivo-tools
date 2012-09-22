@@ -13,7 +13,7 @@ class SparqlQuery extends AppModel {
  *
  * @var string
  */
-	public $displayField = 'short_description';
+	public $displayField = 'name';
 
 /**
  * Validation rules
@@ -21,28 +21,62 @@ class SparqlQuery extends AppModel {
  * @var array
  */
 	public $validate = array(
-		'short_description' => array(
+		'name' => array(
 			'notempty' => array(
 				'rule' => array('notempty'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
+				'message' => 'You must provide a name for this SPARQL query',
+				'allowEmpty' => false,
+				'required' => true,
+				//'last' => false, // Stop validation after this rule
+				//'on' => 'create', // Limit validation to 'create' or 'update' operations
+			),
+			'isUnique' => array(
+				'rule' => array('isUnique'),
+				'message' => 'You must provide a unique name for this SPARQL query',
+				'allowEmpty' => false,
+				'required' => true,
 				//'last' => false, // Stop validation after this rule
 				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
 			'maxlength' => array(
-				'rule' => array('maxlength'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
+				'rule' => array('maxlength', 50),
+				'message' => 'The name for this SPARQL query must be no longer than 50 characters',
+				'allowEmpty' => false,
+				'required' => true,
 				//'last' => false, // Stop validation after this rule
 				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
 			'minlength' => array(
-				'rule' => array('minlength'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
+				'rule' => array('minlength', 5),
+				'message' => 'The name for this SPARQL query must be at least 5 characters in length',
+				'allowEmpty' => false,
+				'required' => true,
+				//'last' => false, // Stop validation after this rule
+				//'on' => 'create', // Limit validation to 'create' or 'update' operations
+			),
+		),
+		'short_description' => array(
+			'notempty' => array(
+				'rule' => array('notempty'),
+				'message' => 'You must provide a short description for this SPARQL query',
+				'allowEmpty' => false,
+				'required' => true,
+				//'last' => false, // Stop validation after this rule
+				//'on' => 'create', // Limit validation to 'create' or 'update' operations
+			),
+			'maxlength' => array(
+				'rule' => array('maxlength', 255),
+				'message' => 'The short description for this SPARQL query must be no longer than 255 characters',
+				'allowEmpty' => false,
+				'required' => true,
+				//'last' => false, // Stop validation after this rule
+				//'on' => 'create', // Limit validation to 'create' or 'update' operations
+			),
+			'minlength' => array(
+				'rule' => array('minlength', 10),
+				'message' => 'You must provide a more descriptive short description for this SPARQL query - at least 10 characters',
+				'allowEmpty' => false,
+				'required' => true,
 				//'last' => false, // Stop validation after this rule
 				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
@@ -50,9 +84,9 @@ class SparqlQuery extends AppModel {
 		'sparql_query' => array(
 			'notempty' => array(
 				'rule' => array('notempty'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
+				'message' => 'DOH! You must provide a SPARQL query to be saved',
+				'allowEmpty' => false,
+				'required' => true,
 				//'last' => false, // Stop validation after this rule
 				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
