@@ -17,6 +17,8 @@ class SparqlComponent extends Component {
 
 	private $rawResult;
 
+	private $sparqlArrayReturn = array();
+
 	private $supportedOutputFormats = array('','','');
 
 	public function __construct(ComponentCollection $collection, $settings = array()) {
@@ -57,8 +59,6 @@ class SparqlComponent extends Component {
 			$this->outputFilename = $outputFilename;
 		}
 
-		// Set the output format to JSON as we need JSON to create a CSV
-		$this->outputFormat = '&output=json';
 
 
 
@@ -68,7 +68,36 @@ class SparqlComponent extends Component {
 
 	}
 
-	private function generateArray($sparqlQuery = null) {
+	private function _generateArray() {
+		// Set the output format to JSON as we need JSON to create a CSV
+		$this->outputFormat = '&output=json';
+
+		// Check to make sure that the class has appropriate variables already defined
+		if (! isset($this->sparqlEndpoint) || ! isset($this->sparqlQuery)) {
+			// We don't have things setup like they should be return a false
+			return false;
+		}
+
+		// We need to create the SPARQL URL that will execute the query
+		$this->curlURL = $this->_createFullURL();
+
+		// Reset the SPARQL array return so that we know it is clean
+		$this->sparqlArrayReturn = array();
+
+		// Perform the SPARQL query at hand
+		if ( ! $this->_performSPARQLQuery() ) {
+			// We received a false back, so something must have happened return false result
+			return false;
+		}
+
+		// Set the header row to appropriate column headers
+		$this->sparqlArrayReturn[] = $this->csvHeaderRowBuilder($this->rawResult['head']['vars']);
+
+		// Parse each row of data to be turned into a row in the CSV
+		foreach ($this->rawResult['results']['bindings'] as $row) {
+			// Append the next row in a well-formatted array
+			$this->sparqlArrayReturn[] = $this->csvDataRowBuilder($this->rawResult['head']['vars'], $row);
+		}
 
 	}
 
@@ -80,7 +109,6 @@ class SparqlComponent extends Component {
 		 * as a string.
 		 *
 		 */
-
 
 		// Iniitialize CURL for communication with SPARQL endpoint
 		$curlInit = curl_init();
@@ -102,7 +130,6 @@ class SparqlComponent extends Component {
 
 		return true;
 
-
 	}
 
 	private function _createFullURL() {
@@ -114,11 +141,40 @@ class SparqlComponent extends Component {
 
 	}
 
-	private function _csvDataRowBuilder() {
+	private function _csvDataRowBuilder($headerRow, $dataLine) {
+		// Create fresh array to return to calling function
+		$dataRow = array();
 
+		// We have to take the headerRow and determine if the results data has all the appropriate fields
+		foreach ( $headerRow as $key=>$value ) {
+			// Check that a key from the header row exists in the data
+			if (array_key_exists($value, $dataLine)) {
+				// If it does exist - then output the value to an indexed array
+				if ($dataLine[$value]['type'] == 'literal') {
+					$dataRow[] = $dataLine[$value]['value'];
+				} else {
+					$dataRow[] = $dataLine[$value]['value'];
+				}
+
+			} elseif (! array_key_exists($value, $dataLine)) {
+				// If it does not - then output a null value so that we keep the same number of columns on every row
+				$dataRow[] = null;
+			}
+		}
+		// Output the well formed row back to the calling function
+		return $dataRow;
 	}
 
-	private function _csvHeaderRowBuilder() {
+	private function _csvHeaderRowBuilder($headerRow) {
+
+		// Create fresh array to return to calling function
+		$headerReturnRow = array();
+		// We have to take the headerRow and determine if the results data has all the appropriate fields
+		foreach ( $headerRow as $key=>$value ) {
+			$headerReturnRow[] = $value;
+		}
+		// Output the well formed header row back to the calling function
+		return $headerReturnRow;
 
 	}
 
