@@ -18,8 +18,8 @@ class SparqlComponent extends Component {
 	private $rawResult;
 
 	private $sparqlArrayReturn = array();
-
-	private $supportedOutputFormats = array('','','');
+ 
+	private $supportedOutputFormats = array('array' => '&output=json', 'csv' => '&output=json', 'rdf' => '&output=xml');
 
 	public function __construct(ComponentCollection $collection, $settings = array()) {
 		// Initialize the parent constructor
@@ -40,7 +40,7 @@ class SparqlComponent extends Component {
 		parent::__destruct();
 	}
 
-	public function generateCSV($sparqlQuery = null, $outputFilename = null) {
+	public function generateDownload($sparqlQuery = null, $outputFilename = null, $outputFormat = null) {
 		// Check to see if the SPARQL query came in
 		if ($sparqlQuery == null || ! isset($sparqlQuery) ) {
 			// No SPARQL submitted so return a false
@@ -59,15 +59,69 @@ class SparqlComponent extends Component {
 			$this->outputFilename = $outputFilename;
 		}
 
+		// Check to see if the output format came in
+		if ($outputFormat == null || ! isset($outputFormat) ) {
+			// No output format submitted so return a false
+			return false;
+		} else {
+			// We passed an output format so lets set it
+			$this->outputFormat = $this->_setOutputFormat($outputFormat);
+			// Check to make sure we got a valid format returned
+			if ( ! $this->outputFormat ) {
+				return false;
+			}
+		}
 
-
+		switch ($this->outputFormat) {
+			case '':
+			
+				break;
+			case '':
+			
+				break;
+			default:
+			
+				break:
+		}
 
 	}
 
-	public function generateRDF($sparqlQuery = null) {
+	public function generateDisplay($sparqlQuery = null, $outputFormat = null) {
+		// Check to see if the SPARQL query came in
+		if ($sparqlQuery == null || ! isset($sparqlQuery) ) {
+			// No SPARQL submitted so return a false
+			return false;
+		} else {
+			// We passed a SPARQL query in so lets set that
+			$this->sparqlQuery = $sparqlQuery;
+		}
+
+		// Check to see if the output format came in
+		if ($outputFormat == null || ! isset($outputFormat) ) {
+			// No output format submitted so return a false
+			return false;
+		} else {
+			// We passed an output format so lets set it
+			$this->outputFormat = $this->_setOutputFormat($outputFormat);
+			// Check to make sure we got a valid format returned
+			if ( ! $this->outputFormat ) {
+				return false;
+			}
+		}
 
 	}
 
+	private function _setOutputFormat($outputFormat) {
+		// Determine if output format is valid
+		if (! array_key_exists($outputFormat, $this->supportedOutputFormats) ) {
+			// The output format provided doesn't exist
+			return false;
+		}
+		
+		// Return the output format value from the supported formats
+		return $this->supportedOutputFormats[$outputFormat];
+	}
+	
 	private function _generateArray() {
 		// Set the output format to JSON as we need JSON to create a CSV
 		$this->outputFormat = '&output=json';
@@ -99,6 +153,7 @@ class SparqlComponent extends Component {
 			$this->sparqlArrayReturn[] = $this->csvDataRowBuilder($this->rawResult['head']['vars'], $row);
 		}
 
+		return true;
 	}
 
 	private function _performSPARQLQuery() {
