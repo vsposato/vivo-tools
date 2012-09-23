@@ -19,7 +19,7 @@ class SparqlComponent extends Component {
 
 	private $supportedOutputFormats = array('','','');
 
-	public function __construct() {
+	public function __construct(ComponentCollection $collection, $settings = array()) {
 		// Initialize the parent constructor
 		parent::__construct();
 
@@ -64,7 +64,11 @@ class SparqlComponent extends Component {
 
 	}
 
-	public function generateRDF() {
+	public function generateRDF($sparqlQuery = null) {
+
+	}
+
+	private function generateArray($sparqlQuery = null) {
 
 	}
 
