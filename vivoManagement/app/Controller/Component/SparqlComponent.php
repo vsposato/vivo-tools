@@ -41,6 +41,15 @@ class SparqlComponent extends Component {
 	public function generateRDF() {
 
 	}
+
+	private function _performSPARQLQuery() {
+
+	}
+
+	private function _createFullURL() {
+
+	}
+
 }
 
 ?>
