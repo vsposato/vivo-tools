@@ -18,7 +18,7 @@ class SparqlComponent extends Component {
 	private $rawResult;
 
 	private $sparqlArrayReturn = array();
- 
+
 	private $supportedOutputFormats = array('array' => '&output=json', 'csv' => '&output=json', 'rdf' => '&output=xml');
 
 	public function __construct(ComponentCollection $collection, $settings = array()) {
@@ -72,15 +72,24 @@ class SparqlComponent extends Component {
 			}
 		}
 
-		switch ($this->outputFormat) {
-			case '':
-			
+		switch ($outputFormat) {
+			case 'csv':
+				// We need to generate the array to output to CSV
+				$this->_generateArray();
+
+				// We need to output to a file
+				if ( ! $this->_outputToCSV() ) {
+					// We didn't return a file so we failed
+					return false;
+				}
+
+				return $this->outputFilename;
 				break;
-			case '':
-			
+			case 'rdf':
+
 				break;
 			default:
-			
+
 				break:
 		}
 
@@ -95,7 +104,6 @@ class SparqlComponent extends Component {
 			// We passed a SPARQL query in so lets set that
 			$this->sparqlQuery = $sparqlQuery;
 		}
-
 		// Check to see if the output format came in
 		if ($outputFormat == null || ! isset($outputFormat) ) {
 			// No output format submitted so return a false
@@ -117,11 +125,48 @@ class SparqlComponent extends Component {
 			// The output format provided doesn't exist
 			return false;
 		}
-		
 		// Return the output format value from the supported formats
 		return $this->supportedOutputFormats[$outputFormat];
 	}
-	
+
+	private function _outputToCSV() {
+		// We need to make sure that we have a valid filename
+		if ( ! isset($this->outputFilename) || empty($this->outputFilename) ) {
+			return false;
+		}
+		// Determine if the file exists
+		if (file_exists($this->outputFilename)) {
+			// If it does exist - attempt to rename it by adding the start timestamp to the end of the filename
+			$startTime = microtime();
+			$newFile = $this->outputFilename . $startTime;
+			if (rename($this->outputFilename, $newFile)) {
+				// If the rename was successful - open the file
+				$fileHandle = fopen($this->outputFilename,'x');
+			} else {
+				// If the rename failed - error out
+				echo "Error - output file exists and it can't be renamed - {$this->outputFilename}! \n";
+				return false;
+			}
+		} elseif (! file_exists($outputFileName)) {
+			// If the file doesn't already exist - create it and open it for writing
+			$fileHandle = fopen($this->outputFilename,'x');
+		}
+		// Determine if the file was opened correctly
+		if ($fileHandle) {
+			// If the file was opened properly, then output the data row by row
+			foreach ($this->sparqlArrayReturn as $row) {
+				fputcsv($fileHandle, $row);
+			}
+			// Close the file handle
+			fclose($fileHandle);
+		} else {
+			// If the file was not opened properly - exit out
+			echo "ERROR - Your file could not be opened! \n";
+			return false;
+		}
+		return true;
+	}
+
 	private function _generateArray() {
 		// Set the output format to JSON as we need JSON to create a CSV
 		$this->outputFormat = '&output=json';
