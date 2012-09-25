@@ -19,8 +19,10 @@
 			</dd>
 			<dt><?php echo __('Sparql Query'); ?></dt>
 			<dd>
+				<pre>
 				<?php echo h($sparqlQuery['SparqlQuery']['sparql_query']); ?>
 				&nbsp;
+				</pre>
 			</dd>
 			<dt><?php echo __('Created'); ?></dt>
 			<dd>

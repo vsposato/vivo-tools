@@ -1,5 +1,9 @@
 <?php
 App::uses('AppController', 'Controller');
+App::uses('PhpReader', 'Configure');
+App::uses('Folder', 'Utility');
+App::uses('File', 'Utility');
+
 /**
  * SparqlQueries Controller
  *
@@ -18,7 +22,7 @@ class SparqlQueriesController extends AppController {
  *
  * @var array
  */
-	public $components = array('Session');
+	public $components = array('Session', 'Sparql');
 /**
  * index method
  *
@@ -110,7 +114,7 @@ class SparqlQueriesController extends AppController {
 		} else {
 			$this->request->data = $this->SparqlQuery->read(null, $id);
 			// Check to determine if the user is allowed to edit this function
-			if ( $sparqlQuery['QueryUserCreated']['id'] == AuthComponent::user('id') || $this->Session->read('FULL_ACCESS_GRANTED') == true ) {
+			if ( ! $this->request->data['QueryUserCreated']['id'] == AuthComponent::user('id') && ! $this->Session->read('FULL_ACCESS_GRANTED') == true ) {
 				$this->Session->setFlash(
 					__('The %s could not be accessed - permission denied', __('sparql query')),
 					'alert',
@@ -161,5 +165,173 @@ class SparqlQueriesController extends AppController {
 			)
 		);
 		$this->redirect(array('action' => 'index'));
-	}/**
+	}
+
+	public function execute($id = null) {
+		if ($id == null && ($this->request->is('post') || $this->request->is('put')))  {
+			$id = $this->request->data['SparqlQuery']['id'];
+		}
+		$this->SparqlQuery->id = $id;
+		if (!$this->SparqlQuery->exists()) {
+			throw new NotFoundException(__('Invalid %s', __('sparql query')));
+		}
+
+		if ($this->request->is('post') || $this->request->is('put')) {
+			//die(debug($this->request->data));
+			switch ($this->request->data['Execute']['outputFormat']) {
+				case 'csv':
+					// Create the name of the file we will be saving
+					$filename = $this->_generateFileDownloadDirectory() . $this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.csv');
+					// Retrieve the filename from the SPARQL query
+					$resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $filename, 'csv');
+					// If it was a success, download the file
+					if ($resultFile) {
+						$this->Session->setFlash(
+							__('The %s completed successfully. Please check your downloads directory!', __('sparql query')),
+							'alert',
+							array(
+								'plugin' => 'TwitterBootstrap',
+								'class' => 'alert-success'
+							)
+						);
+						$this->sendFileDownload($this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.csv'),$this->_generateFileDownloadDirectory(), '.csv');
+					} elseif (! $resultFile) {
+						$this->Session->setFlash(
+							__('The %s was not completed successfully!', __('sparql query')),
+							'alert',
+							array(
+								'plugin' => 'TwitterBootstrap',
+								'class' => 'alert-error'
+							)
+						);
+					}
+				break;
+				case 'rdf':
+					// Create the name of the file we will be saving
+					$filename = $this->_generateFileDownloadDirectory() . $this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.xml');
+					// Retrieve the filename from the SPARQL query
+					$resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $filename, 'rdf');
+					// If it was a success, download the file
+					if ($resultFile) {
+						$this->Session->setFlash(
+							__('The %s completed successfully. Please check your downloads directory!', __('sparql query')),
+							'alert',
+							array(
+								'plugin' => 'TwitterBootstrap',
+								'class' => 'alert-success'
+							)
+						);
+						$this->sendFileDownload($this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.xml'),$this->_generateFileDownloadDirectory(), '.xml');
+					} elseif (! $resultFile) {
+						$this->Session->setFlash(
+							__('The %s was not completed successfully!', __('sparql query')),
+							'alert',
+							array(
+								'plugin' => 'TwitterBootstrap',
+								'class' => 'alert-error'
+							)
+						);
+					}
+				break;
+				case 'tsv':
+					// Create the name of the file we will be saving
+					$filename = $this->_generateFileDownloadDirectory() . $this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.tsv');
+					// Retrieve the filename from the SPARQL query
+					$resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $filename, 'tsv');
+					// If it was a success, download the file
+					if ($resultFile) {
+						$this->Session->setFlash(
+							__('The %s completed successfully. Please check your downloads directory!', __('sparql query')),
+							'alert',
+							array(
+								'plugin' => 'TwitterBootstrap',
+								'class' => 'alert-success'
+							)
+						);
+						$this->sendFileDownload($this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.tsv'),$this->_generateFileDownloadDirectory(), '.tsv');
+					} elseif (! $resultFile) {
+						$this->Session->setFlash(
+							__('The %s was not completed successfully!', __('sparql query')),
+							'alert',
+							array(
+								'plugin' => 'TwitterBootstrap',
+								'class' => 'alert-error'
+							)
+						);
+					}
+				break;
+				case 'array':
+
+				break;
+			}
+
+		} else {
+			$this->request->data = $this->SparqlQuery->read(null, $id);
+
+		}
+
+		$constructStatement = stripos($this->request->data['SparqlQuery']['sparql_query'], 'CONSTRUCT');
+		if ($constructStatement === false) {
+			$this->set('construct', false);
+		} elseif ($constructStatement !== false) {
+			$this->set('construct', true);
+		}
+		$this->set('sparqlQuery', $this->request->data);
+
+	}
+
+	private function _generateFileDownloadName($queryName = null, $extension = '.csv') {
+		if ($queryName == null) {
+			$queryName = 'NotProvided';
+		} else {
+			$queryName = str_replace(' ','',$queryName);
+		}
+
+		$user = $this->Session->read('Auth.User');
+		$user_name = $user['username'];
+		$date = date('YmdHis');
+
+		return ($user_name . '_' . $queryName . '_' . $date . $extension);
+
+	}
+
+	public function sendFileDownload($filename, $directory, $extension) {
+		$this->viewClass = 'Media';
+
+		$parameters = array(
+			'id' => $filename,
+			'download' => true,
+			'extension' => $extension,
+			'path' => $directory
+		);
+
+		$this->set($parameters);
+	}
+
+	private function _generateFileDownloadDirectory() {
+		// Setup configuration reader
+		Configure::config('default', new PhpReader());
+		// Now we need to load a configuration file for SPARQL
+		Configure::load('sparql', 'default', false);
+		// Load the base save directory into memory
+		$baseDirectory = Configure::read('sparqlBaseDir');
+		// Need to see if user has a folder
+		// Get user information from the session
+		$user = $this->Session->read('Auth.User');
+		// Get the username from the user record - this is the name of their directory
+		$user_name = $user['username'];
+		// Define the full folder name
+		$fullFolderName = $baseDirectory . $user_name . '/';
+		// Check to see if it exists
+		$folder = new Folder($fullFolderName, true, 0755);
+
+		if ($folder) {
+			// The folder exists, or it did not and we created it
+			return $fullFolderName;
+		} elseif (! $folder) {
+			// The folder didn't exist and we couldn't create it
+			return false;
+		}
+	}
+
 }

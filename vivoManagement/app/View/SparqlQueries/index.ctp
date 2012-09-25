@@ -24,10 +24,14 @@
 		</td>
 		<td class="actions">
 			<div class="btn-group">
-				<?php echo $this->Html->link(__('View'), array('action' => 'view', $sparqlQuery['SparqlQuery']['id']), array('class' => 'btn btn-small')); ?>
+				<?php
+					echo $this->Html->link(__('View'), array('action' => 'view', $sparqlQuery['SparqlQuery']['id']), array('class' => 'btn btn-small'));
+					//echo $this->BootstrapHtml->link(__('Execute'), '#executeSPARQLModal', array('class'=>'btn btn-small btn-success', 'data-toggle' => 'modal'));
+					echo $this->BootstrapHtml->link(__('Execute'), array('action' => 'execute', $sparqlQuery['SparqlQuery']['id']), array('class' => 'btn btn-small btn-success'));
+				?>
 				<?php
 					 if ( $sparqlQuery['QueryUserCreated']['id'] == AuthComponent::user('id') || $this->Session->read('FULL_ACCESS_GRANTED') == true ) {
-						 echo $this->Html->link(__('Edit'), array('action' => 'edit', $sparqlQuery['SparqlQuery']['id']), array('class' => 'btn btn-small'));
+						 echo $this->BootstrapHtml->link(__('Edit'), array('action' => 'edit', $sparqlQuery['SparqlQuery']['id']), array('class' => 'btn btn-small'));
 						 echo $this->Form->postLink(__('Delete'), array('action' => 'delete', $sparqlQuery['SparqlQuery']['id']), array('class' => 'btn btn-small btn-danger'), __('Are you sure you want to delete # %s?', $sparqlQuery['SparqlQuery']['id']));
 					 }
 				?>
@@ -38,3 +42,5 @@
 </table>
 
 <?php echo $this->BootstrapPaginator->pagination(); ?>
+
+<?php echo $this->element('modal_execute_sparql'); ?>
