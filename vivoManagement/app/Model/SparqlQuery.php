@@ -55,6 +55,16 @@ class SparqlQuery extends AppModel {
 				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
 		),
+		'parameterized' => array(
+			'boolean' => array(
+				'rule' => array('boolean'),
+				'message' => 'Accepts parameters only takes a boolean value',
+				'allowEmpty' => false,
+				'required' => false,
+				//'last' => false, // Stop validation after this rule
+				//'on' => 'create', // Limit validation to 'create' or 'update' operations
+			),
+		),
 		'short_description' => array(
 			'notempty' => array(
 				'rule' => array('notempty'),
@@ -115,5 +125,21 @@ class SparqlQuery extends AppModel {
 			'fields' => '',
 			'order' => ''
 		)
+	);
+
+	public $hasMany = array(
+		'SparqlQueryParameter' => array(
+			'className' => 'SparqlQuery',
+			'foreignKey' => 'sparql_query_id',
+			'dependent' => true,
+			'conditions' => '',
+			'fields' => '',
+			'order' => '',
+			'limit' => '',
+			'offset' => '',
+			'exclusive' => '',
+			'finderQuery' => '',
+			'counterQuery' => ''
+		),
 	);
 }

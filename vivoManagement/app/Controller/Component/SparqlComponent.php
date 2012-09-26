@@ -270,7 +270,7 @@ class SparqlComponent extends Component {
 			if (array_key_exists($value, $dataLine)) {
 				// If it does exist - then output the value to an indexed array
 				if ($dataLine[$value]['type'] == 'literal') {
-					$dataRow[] = $dataLine[$value]['value'];
+					$dataRow[] = "\"" . $dataLine[$value]['value'] . "\"";
 				} else {
 					$dataRow[] = $dataLine[$value]['value'];
 				}
