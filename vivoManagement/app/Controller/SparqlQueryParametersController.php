@@ -159,4 +159,30 @@ class SparqlQueryParametersController extends AppController {
 		);
 		$this->redirect(array('action' => 'index'));
 	}
+
+	public function ajaxAdd($sparqlQueryId = null) {
+
+		// Create a basic SparqlQueryParameter
+		$this->SparqlQueryParameter->create();
+
+		if ($this->SparqlQueryParameter->save($this->request->data)) {
+			$message = 'Query Parameter saved successfully';
+			$success = true;
+		} else {
+			$message = parent::processNonCakeHandledValidation($this->SparqlQueryParameter->validationErrors);
+			$success = false;
+		}
+
+		$sparqlQueryParameters = array();
+
+		$sparqlQueryParameters = $this->SparqlQueryParameter->find('list', array(
+			'order' => 'parameter',
+			'conditions' => array(
+				'sparql_query_id' => $sparqlQueryId
+				)
+			)
+		);
+
+		$this->set(compact('sparqlQueryParameters', 'success', 'message'));
+	}
 }
