@@ -128,6 +128,7 @@ class SparqlQueriesController extends AppController {
 			}
 
 		}
+		$this->set(compact('id'));
 		$this->render('add_edit');
 	}
 
@@ -276,8 +277,26 @@ class SparqlQueriesController extends AppController {
 		} elseif ($constructStatement !== false) {
 			$this->set('construct', true);
 		}
+
+		$parameterizedQuery = $this->request->data['SparqlQuery']['parameterized'] ? true : false;
+		if ($parameterizedQuery) {
+			$this->set('parameterized', $parameterizedQuery);
+			$parameterArray = $this->_generateParameterArray($this->request->data['SparqlQuery']['parameters']);
+		} elseif (! $parameterizedQuery) {
+			$this->set('parameterized', $parameterizedQuery);
+		}
 		$this->set('sparqlQuery', $this->request->data);
 
+	}
+
+	private function _generateParameterArray($commaSeparatedParameters = null) {
+		// Check to see if we actually received some data
+		if (! $commaSeparatedParameters) {
+			// We didn't so return a false
+			return false;
+		}
+
+		$tempArray = explode(",", $commaSeparatedParameters);
 	}
 
 	private function _generateFileDownloadName($queryName = null, $extension = '.csv') {

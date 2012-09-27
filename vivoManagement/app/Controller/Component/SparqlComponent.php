@@ -36,7 +36,7 @@ class SparqlComponent extends Component {
 
 	}
 
-	public function generateDownload($sparqlQuery = null, $outputFilename = null, $outputFormat = null) {
+	public function generateDownload($sparqlQuery = null, $outputFilename = null, $outputFormat = null, $parameterized = false, $parameters = array()) {
 		// Check to see if the SPARQL query came in
 		if ($sparqlQuery == null || ! isset($sparqlQuery) ) {
 			// No SPARQL submitted so return a false
