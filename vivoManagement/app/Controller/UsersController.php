@@ -44,14 +44,9 @@ class UsersController extends AppController {
 		if (!$this->User->exists()) {
 			throw new NotFoundException(__('Invalid %s', __('user')));
 		}
-        // Setup configuration reader
-        Configure::config('default', new PhpReader());
-        // Now we need to load a configuration file for SPARQL
-        Configure::load('sparql', 'default', false);
-        // Load the base save directory into memory
-        $baseDirectory = Configure::read('sparqlBaseDir');
-        $this->set('baseDirectory', $baseDirectory);
         $this->set('user', $this->User->read(null, $id));
+        $userFiles = $this->_getUserFileInformation($this->User->field('username'));
+        $this->set('userFiles', $userFiles);
 	}
     /**
      * view method
@@ -64,13 +59,6 @@ class UsersController extends AppController {
         if (!$this->User->exists()) {
             throw new NotFoundException(__('Invalid %s', __('user')));
         }
-        // Setup configuration reader
-        Configure::config('default', new PhpReader());
-        // Now we need to load a configuration file for SPARQL
-        Configure::load('sparql', 'default', false);
-        // Load the base save directory into memory
-        $baseDirectory = Configure::read('sparqlBaseDir');
-        $this->set('baseDirectory', $baseDirectory);
         $this->set('user', $this->User->read(null, $id));
     }
 
@@ -229,5 +217,60 @@ class UsersController extends AppController {
 		$this->redirect(array('admin' => false, 'controller' => 'users', 'action' => 'login'));
 
 	}
+
+    private function _getUserFileInformation($username) {
+        // Setup configuration reader
+        Configure::config('default', new PhpReader());
+        // Now we need to load a configuration file for SPARQL
+        Configure::load('sparql', 'default', false);
+        // Load the base save directory into memory
+        $baseDirectory = Configure::read('sparqlBaseDir');
+        $this->set('baseDirectory', $baseDirectory);
+
+        $userDirectory = new Folder($baseDirectory . $username);
+        $userFiles = $userDirectory->find('.*', true);
+
+        $fileArray = array();
+        foreach ($userFiles as $userFile) {
+            $displayFile = new File($baseDirectory . $username . '/' . $userFile);
+
+            $fileArray[] = $this->_createFileArrayRow($displayFile);
+        }
+
+        return $fileArray;
+    }
+
+    private function _createFileArrayRow(File $userFile) {
+        // Initialize new files array
+        $returnArray = array();
+
+        // Gather the filename, file size, file type, last modified date, and the full path to the file
+        $returnArray['fileName'] = $userFile->name();
+        $returnArray['fileSize'] = $userFile->size();
+        $returnArray['fileType'] = $userFile->mime();
+        $returnArray['fileModified'] = $userFile->lastChange();
+        $returnArray['filePath'] = $userFile->path;
+        $returnArray['fileExt'] = $userFile->ext();
+        $returnArray['fileDir'] = $userFile->Folder->path;
+
+        return $returnArray;
+    }
+
+    public function deleteUserFile() {
+        $deleteUserFile = $this->passedArgs['deleteUserFile'];
+        debug($deleteUserFile);
+        if (strpos($deleteUserFile, $this->Session->read('Auth.User.username'))) {
+            if (unlink($deleteUserFile)) {
+                $this->Session->setFlash(__('%s deleted', __('User')),
+                    'alert',
+                    array(
+                        'plugin' => 'TwitterBootstrap',
+                        'class' => 'alert-success'
+                    )
+                );
+                $this->redirect(array('admin' => true, 'controller' => 'users', 'action' => 'index'));
+            }
+        }
+    }
 
 }

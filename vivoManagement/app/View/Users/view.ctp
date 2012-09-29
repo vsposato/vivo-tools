@@ -36,38 +36,37 @@
 </div>
 <div class="row-fluid">
     <?php
-        $userDirectory = new Folder($baseDirectory . $user['User']['username']);
-        $userFiles = $userDirectory->find('.*', true);
     ?>
-<!--    <table class="table table-hover table-condensed">
-    <thead>
-    <tr>
-        <th>File Name</th>
-        <th><?php echo $this->BootstrapPaginator->sort('username');?></th>
-        <th><?php echo $this->BootstrapPaginator->sort('email_address');?></th>
-        <th class="actions"><?php echo __('Actions');?></th>
-    </tr>
-    </thead>
-    <tbody>-->
-    <?php foreach ($userFiles as $userFile): ?>
-    <?php
-        $displayFile = new File($baseDirectory . $user['User']['username'] . '/' . $userFile);
-        debug($displayFile); ?>
-   <!-- <tr>
-        <td><?php echo h($user['User']['full_name']); ?>&nbsp;</td>
-        <td><?php echo h($user['User']['username']); ?>&nbsp;</td>
-        <td><?php echo h($user['User']['email_address']); ?>&nbsp;</td>
-        <td class="actions">
-            <div class="btn-group">
-                <?php
-                echo $this->Html->link(__('View'), array('action' => 'view', $user['User']['id']), array('class' => 'btn btn-mini'));
-                echo $this->Html->link(__('Edit'), array('action' => 'edit', $user['User']['id']), array('class' => 'btn btn-mini'));
-                echo $this->Form->postLink(__('Delete'), array('action' => 'delete', $user['User']['id']), array('class' => 'btn btn-mini'), __('Are you sure you want to delete  %s?', $user['User']['username']));
-                ?>
-            </div>
-        </td>
-    </tr> -->
-        <?php endforeach; ?>
+    <table class="table table-hover table-condensed">
+        <thead>
+            <tr>
+                <th>File Name</th>
+                <th>File Size</th>
+                <th>File Type</th>
+                <th>File Modified</th>
+                <th class="actions"><?php echo __('Actions');?></th>
+            </tr>
+        </thead>
+    <tbody>
+        <?php foreach ($userFiles as $userFile){
+            $displayFile = new File($baseDirectory . $user['User']['username'] . '/' . $userFile);
+            //debug($displayFile->info());
+            //debug($displayFile); ?>
+        <tr>
+            <td><?php echo $userFile['fileName']; ?>&nbsp;</td>
+            <td><?php echo $this->Number->toReadableSize($userFile['fileSize']); ?>&nbsp;</td>
+            <td><?php echo $userFile['fileType']; ?>&nbsp;</td>
+            <td><?php echo $this->Time->format('m-d-Y H:i:s',$userFile['fileModified']); ?>&nbsp;</td>
+            <td class="actions">
+                <div class="btn-group">
+                    <?php
+                        echo $this->Html->link(__('Download'), array('controller' => 'sparql_queries', 'action' => 'sendFileDownload', '?' => array('filename' => $userFile['fileName'], 'directory' => $userFile['fileDir'], 'extension' => $userFile['fileExt'])), array('class' => 'btn btn-mini'));
+                        echo $this->Form->postLink(__('Delete'), array('action' => 'deleteUserFile', 'deleteUserFile' => $userFile['filePath']), array('class' => 'btn btn-mini btn-danger'), __('Are you sure you want to delete  %s?', $userFile['fileName']));
+                    ?>
+                </div>
+            </td>
+        </tr>
+        <?php } ?>
     </tbody>
     <tfoot>
     <tr>
@@ -83,6 +82,5 @@
     </tfoot>
     </table>
 
-    ?>
 </div>
 

@@ -16,7 +16,7 @@ class SparqlQueriesController extends AppController {
  *
  * @var array
  */
-	public $helpers = array('TwitterBootstrap.BootstrapHtml', 'TwitterBootstrap.BootstrapForm', 'TwitterBootstrap.BootstrapPaginator');
+	public $helpers = array('TwitterBootstrap.BootstrapHtml', 'TwitterBootstrap.BootstrapForm', 'TwitterBootstrap.BootstrapPaginator', 'CakeNumber');
 /**
  * Components
  *
@@ -313,7 +313,18 @@ class SparqlQueriesController extends AppController {
 
 	}
 
-	public function sendFileDownload($filename, $directory, $extension) {
+	public function sendFileDownload($filename = null, $directory = null, $extension = null) {
+        if ($this->request->is('get')) {
+            if (! $filename) {
+                $filename = $this->request->query['filename'];
+            }
+            if (! $directory) {
+                $directory = $this->request->query['directory'] . "/";
+            }
+            if (! $extension) {
+                $extension = $this->request->query['extension'];
+            }
+        }
 		$this->viewClass = 'Media';
 
 		$parameters = array(
