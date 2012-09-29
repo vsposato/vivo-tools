@@ -55,7 +55,12 @@ class SparqlQueriesController extends AppController {
 	public function add() {
 		if ($this->request->is('post')) {
 			$this->SparqlQuery->create();
-			if ($this->SparqlQuery->save($this->request->data)) {
+            if (! $this->request->data['SparqlQuery']['parameterized'] ) {
+                // If we are not parameterizing the query then we need to remove validation
+                $this->SparqlQuery->validator()->remove('parameter');
+                $this->SparqlQuery->validator()->remove('parameter_type');
+            }
+            if ($this->SparqlQuery->save($this->request->data)) {
 				$this->Session->setFlash(
 					__('The %s has been saved', __('sparql query')),
 					'alert',
@@ -91,6 +96,12 @@ class SparqlQueriesController extends AppController {
 			throw new NotFoundException(__('Invalid %s', __('sparql query')));
 		}
 		if ($this->request->is('post') || $this->request->is('put')) {
+            debug($this->request->data);
+            if (! $this->request->data['SparqlQuery']['parameterized'] ) {
+                // If we are not parameterizing the query then we need to remove validation
+                $this->SparqlQuery->validator()->remove('parameter');
+                $this->SparqlQuery->validator()->remove('parameter_type');
+            }
 			if ($this->SparqlQuery->save($this->request->data)) {
 				$this->Session->setFlash(
 					__('The %s has been saved', __('sparql query')),
@@ -281,22 +292,10 @@ class SparqlQueriesController extends AppController {
 		$parameterizedQuery = $this->request->data['SparqlQuery']['parameterized'] ? true : false;
 		if ($parameterizedQuery) {
 			$this->set('parameterized', $parameterizedQuery);
-			$parameterArray = $this->_generateParameterArray($this->request->data['SparqlQuery']['parameters']);
 		} elseif (! $parameterizedQuery) {
 			$this->set('parameterized', $parameterizedQuery);
 		}
 		$this->set('sparqlQuery', $this->request->data);
-
-	}
-
-	private function _generateParameterArray($commaSeparatedParameters = null) {
-		// Check to see if we actually received some data
-		if (! $commaSeparatedParameters) {
-			// We didn't so return a false
-			return false;
-		}
-
-		$tempArray = explode(",", $commaSeparatedParameters);
 	}
 
 	private function _generateFileDownloadName($queryName = null, $extension = '.csv') {

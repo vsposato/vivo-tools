@@ -1,6 +1,11 @@
 <fieldset>
 	<?php
-		echo $this->BootstrapForm->create('SparqlQueries', array('action' => 'execute', 'class' => 'form-horizontal'));
+		echo $this->BootstrapForm->create('SparqlQueries', array(
+            'action' => 'execute',
+            'class' => 'form-horizontal',
+            'enctype' => 'multipart/form-data'
+            )
+        );
 	?>
 	<legend>Execute Query - <?php echo $sparqlQuery['SparqlQuery']['name']; ?></legend>
 	<?php
@@ -23,9 +28,22 @@
 				'selected' => 'csv'
 			));
 		}
+		if ($parameterized) {
+		    // This is a parameterized query so we need to create the items to capture a parameterized items
+		    echo $this->BootstrapForm->input('Execute.parameter_file', array(
+                    'type' => 'file',
+                    'between' => '<br/>'
+                )
+            );
+            // This will hold the actual parameter value
+            echo $this->BootstrapForm->hidden('SparqlQuery.parameter');
+            // This will hold the type of parameter that will be replaced: String or Numeric
+            echo $this->BootstrapForm->hidden('SparqlQuery.parameter_type');
+		}
 		echo $this->BootstrapForm->hidden('SparqlQuery.id');
 		echo $this->BootstrapForm->hidden('SparqlQuery.sparql_query');
 		echo $this->BootstrapForm->hidden('SparqlQuery.name');
+        echo $this->BootstrapForm->hidden('SparqlQuery.parameterized');
 		echo $this->BootstrapForm->submit('Execute Query', array('class' => 'btn btn-success btn-large'));
 		echo $this->BootstrapForm->end();
 	?>

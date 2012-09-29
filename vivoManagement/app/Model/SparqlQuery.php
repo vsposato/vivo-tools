@@ -55,10 +55,38 @@ class SparqlQuery extends AppModel {
 				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
 		),
+        'parameter' => array(
+            'maxlength' => array(
+                'rule' => array('maxlength', 25),
+                'message' => 'The parameter name for this SPARQL query must be no longer than 25 characters',
+                'allowEmpty' => false,
+                'required' => true,
+                //'last' => false, // Stop validation after this rule
+                //'on' => 'create', // Limit validation to 'create' or 'update' operations
+            ),
+            'minlength' => array(
+                'rule' => array('minlength', 4),
+                'message' => 'The parameter name for this SPARQL query must be at least 4 characters in length',
+                'allowEmpty' => false,
+                'required' => true,
+                //'last' => false, // Stop validation after this rule
+                //'on' => 'create', // Limit validation to 'create' or 'update' operations
+            ),
+        ),
+        'parameter_type' => array(
+            'inList' => array(
+                'rule' => array('inList', array('String', 'Numeric')),
+                'message' => 'The parameter type for this SPARQL query\'s parameter must be either String or Numeric',
+                'allowEmpty' => false,
+                'required' => true,
+                //'last' => false, // Stop validation after this rule
+                //'on' => 'create', // Limit validation to 'create' or 'update' operations
+            ),
+        ),
 		'parameterized' => array(
 			'boolean' => array(
 				'rule' => array('boolean'),
-				'message' => 'Accepts parameters only takes a boolean value',
+				'message' => 'Accepts parameter only takes a boolean value',
 				'allowEmpty' => false,
 				'required' => false,
 				//'last' => false, // Stop validation after this rule
@@ -127,7 +155,7 @@ class SparqlQuery extends AppModel {
 		)
 	);
 
-	public $hasMany = array(
+/*	public $hasMany = array(
 		'SparqlQueryParameter' => array(
 			'className' => 'SparqlQuery',
 			'foreignKey' => 'sparql_query_id',
@@ -141,5 +169,5 @@ class SparqlQuery extends AppModel {
 			'finderQuery' => '',
 			'counterQuery' => ''
 		),
-	);
+	);*/
 }

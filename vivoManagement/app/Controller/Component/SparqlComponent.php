@@ -2,7 +2,11 @@
 
 App::uses('Component', 'Controller');
 App::uses('PhpReader', 'Configure');
-
+/**
+ * Sparql Component
+ *
+ * @property SparqlComponent $Sparql
+ */
 class SparqlComponent extends Component {
 
 	public $sparqlEndpoint;
@@ -24,16 +28,12 @@ class SparqlComponent extends Component {
 	public function __construct(ComponentCollection $collection, $settings = array()) {
 		// Initialize the parent constructor
 		parent::__construct($collection, $settings);
-
 		// Setup configuration reader
 		Configure::config('default', new PhpReader());
-
 		// Now we need to load a configuration file for SPARQL
 		Configure::load('sparql', 'default', false);
-
 		// Set the SPARQL endpoint that we are supposed to use
 		$this->sparqlEndpoint = Configure::read('sparqlEndpoint');
-
 	}
 
 	public function generateDownload($sparqlQuery = null, $outputFilename = null, $outputFormat = null, $parameterized = false, $parameters = array()) {
@@ -90,15 +90,29 @@ class SparqlComponent extends Component {
 					// We didn't return a file so we failed
 					return false;
 				}
-
 				return $this->outputFilename;
 				break;
 			case 'rdf':
-
+                $this->_generateRDF();
+                // We need to output to a file
+                if ( ! $this->_outputToFile() ) {
+                    // We didn't return a file so we failed
+                    return false;
+                }
+                return $this->outputFilename;
 				break;
 			default:
+                // We need to generate the array to output to CSV
+                $this->_generateArray();
 
-				break;
+                // We need to output to a file
+                if ( ! $this->_outputToCSV(false) ) {
+                    // We didn't return a file so we failed
+                    return false;
+                }
+
+                return $this->outputFilename;
+                break;
 		}
 
 	}
@@ -155,8 +169,7 @@ class SparqlComponent extends Component {
 				echo "Error - output file exists and it can't be renamed - {$this->outputFilename}! \n";
 				return false;
 			}
-		} elseif (! file_exists($outputFileName)) {
-			debug($this->outputFilename);
+		} elseif (! file_exists($this->outputFilename)) {
 			// If the file doesn't already exist - create it and open it for writing
 			$fileHandle = fopen($this->outputFilename,'x');
 		}
@@ -179,6 +192,42 @@ class SparqlComponent extends Component {
 		}
 		return true;
 	}
+
+    private function _outputToFile() {
+        // We need to make sure that we have a valid filename
+        if ( ! isset($this->outputFilename) || empty($this->outputFilename) ) {
+            return false;
+        }
+        // Determine if the file exists
+        if (file_exists($this->outputFilename)) {
+            // If it does exist - attempt to rename it by adding the start timestamp to the end of the filename
+            $startTime = microtime();
+            $newFile = $this->outputFilename . $startTime;
+            if (rename($this->outputFilename, $newFile)) {
+                // If the rename was successful - open the file
+                $fileHandle = fopen($this->outputFilename,'x');
+            } else {
+                // If the rename failed - error out
+                echo "Error - output file exists and it can't be renamed - {$this->outputFilename}! \n";
+                return false;
+            }
+        } elseif (! file_exists($this->outputFilename)) {
+            // If the file doesn't already exist - create it and open it for writing
+            $fileHandle = fopen($this->outputFilename,'x');
+        }
+        // Determine if the file was opened correctly
+        if ($fileHandle) {
+            // If the file was opened properly, then output the xml
+            fputs($fileHandle, $this->rawResult);
+            // Close the file handle
+            fclose($fileHandle);
+        } else {
+            // If the file was not opened properly - exit out
+            echo "ERROR - Your file could not be opened! \n";
+            return false;
+        }
+        return true;
+    }
 
 	private function _generateArray() {
 		// Set the output format to JSON as we need JSON to create a CSV
@@ -218,7 +267,29 @@ class SparqlComponent extends Component {
 		return true;
 	}
 
-	private function _performSPARQLQuery() {
+    private function _generateRDF() {
+        // Set the output format to JSON as we need JSON to create a CSV
+        $this->outputFormat = '&output=json';
+
+        // Check to make sure that the class has appropriate variables already defined
+        if (! isset($this->sparqlEndpoint) || ! isset($this->sparqlQuery)) {
+            // We don't have things setup like they should be return a false
+            return false;
+        }
+
+        // We need to create the SPARQL URL that will execute the query
+        $this->curlURL = $this->_createFullURL();
+
+        // Perform the SPARQL query at hand
+        if ( ! $this->_performSPARQLQuery() ) {
+            // We received a false back, so something must have happened return false result
+            return false;
+        }
+
+        return true;
+
+    }
+	private function _performSPARQLQuery($counter = null) {
 
 		/*
 		 * This function will take a full URL and a query to execute and
@@ -238,6 +309,18 @@ class SparqlComponent extends Component {
 		// Execute the CURL and pass response back to $curlReturn
 		$this->rawResult = curl_exec($curlInit);
 
+        // Determine the response from the SPARQL server
+        $curlResponseCode = curl_getinfo($curlInit, CURLINFO_HTTP_CODE);
+
+        // If the response was not 200 (success) and our counter is less than 3 times
+        if (($curlResponseCode !== 200) && ($counter < 3)) {
+            // We need to call the query again to make sure it wasn't a temporary connection issue
+            $this->_performSPARQLQuery(++$counter);
+        } elseif (($curlResponseCode !== 200) && ($counter === 3)) {
+            // This is our 3rd time through so we need to return a false back to the calling function
+            return false;
+        }
+
 		// Close out the CURL
 		curl_close($curlInit);
 
@@ -252,18 +335,15 @@ class SparqlComponent extends Component {
 	}
 
 	private function _createFullURL() {
-
 		// URL encode the query so that we can pass it as part of the URL
 		$query = urlencode($this->sparqlQuery);
 		// Return the full url to the calling function
 		return ($this->sparqlEndpoint . $query . $this->outputFormat);
-
 	}
 
 	private function _csvDataRowBuilder($headerRow, $dataLine) {
 		// Create fresh array to return to calling function
 		$dataRow = array();
-
 		// We have to take the headerRow and determine if the results data has all the appropriate fields
 		foreach ( $headerRow as $key=>$value ) {
 			// Check that a key from the header row exists in the data
@@ -294,7 +374,6 @@ class SparqlComponent extends Component {
 		}
 		// Output the well formed header row back to the calling function
 		return $headerReturnRow;
-
 	}
 }
 

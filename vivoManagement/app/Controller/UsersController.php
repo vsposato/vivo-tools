@@ -1,18 +1,15 @@
 <?php
 App::uses('AppController', 'Controller');
+App::uses('Folder', 'Utility');
+App::uses('File', 'Utility');
+App::uses('PhpReader', 'Configure');
+
 /**
  * Users Controller
  *
  * @property User $User
  */
 class UsersController extends AppController {
-
-/**
- *  Layout
- *
- * @var string
- */
-//	public $layout = 'bootstrap';
 
 /**
  * Helpers
@@ -42,13 +39,40 @@ class UsersController extends AppController {
  * @param string $id
  * @return void
  */
-	public function admin_view($id = null) {
+	public function view($id = null) {
 		$this->User->id = $id;
 		if (!$this->User->exists()) {
 			throw new NotFoundException(__('Invalid %s', __('user')));
 		}
-		$this->set('user', $this->User->read(null, $id));
+        // Setup configuration reader
+        Configure::config('default', new PhpReader());
+        // Now we need to load a configuration file for SPARQL
+        Configure::load('sparql', 'default', false);
+        // Load the base save directory into memory
+        $baseDirectory = Configure::read('sparqlBaseDir');
+        $this->set('baseDirectory', $baseDirectory);
+        $this->set('user', $this->User->read(null, $id));
 	}
+    /**
+     * view method
+     *
+     * @param string $id
+     * @return void
+     */
+    public function admin_view($id = null) {
+        $this->User->id = $id;
+        if (!$this->User->exists()) {
+            throw new NotFoundException(__('Invalid %s', __('user')));
+        }
+        // Setup configuration reader
+        Configure::config('default', new PhpReader());
+        // Now we need to load a configuration file for SPARQL
+        Configure::load('sparql', 'default', false);
+        // Load the base save directory into memory
+        $baseDirectory = Configure::read('sparqlBaseDir');
+        $this->set('baseDirectory', $baseDirectory);
+        $this->set('user', $this->User->read(null, $id));
+    }
 
 /**
  * add method

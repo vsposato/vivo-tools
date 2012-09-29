@@ -14,11 +14,19 @@
 				'id' => 'parameterCheckbox'
 				)
 			);
-			echo $this->BootstrapForm->input('parameters', array(
-				'rows' => '3',
-				'class' => 'input-xxlarge',
-				'id' => 'parametersArray',
-				'helpInline' => '<p id="parameterInstruction">Comma separated variable, variable type list, with each variable on a new line. <br>Format: <br>?ufid, string<br>?deptid, string</p>'
+			$options = array('Numeric' => 'Numeric', 'String' => 'String');
+			echo $this->BootstrapForm->input('parameter_type', array(
+				'type' => 'select',
+				'id' => 'parameterType',
+				'options' => $options,
+				'selected' => 'csv',
+				'class' => 'input-xxlarge'
+			));
+			echo $this->BootstrapForm->input('parameter', array(
+				'id' => 'parameter',
+				'helpInline' => '<p class="parameterHelp">This should be in format ?ufid like you<br>would write in an actual query, in the query you should wrap the parameter with [].
+				    For the parameter example it would be [?ufid] every place it needs to be replaced.</p>',
+				'class' => 'input-xxlarge'
 				)
 			);
 			echo $this->BootstrapForm->input('short_description', array(
@@ -48,13 +56,17 @@
 
 <script type="text/javascript">
 	$(document).ready(function(){
-		$('#parametersArray').toggle();
-		$('label[for="SparqlQueryParameters"]').toggle();
-		$('#parameterInstruction').toggle();
+		$('#parameter').toggle();
+		$('label[for="SparqlQueryParameter"]').toggle();
+		$('span.help-inline p.parameterHelp').toggle();
+		$('#parameterType').toggle();
+		$('label[for="SparqlQueryParameterType"]').toggle();
 	});
 	$('input[name="data[SparqlQuery][parameterized]"]').click(function(){
-		$('#parametersArray').toggle(this.checked);
-		$('label[for="SparqlQueryParameters"]').toggle(this.checked);
-		$('#parameterInstruction').toggle();
+		$('#parameter').toggle(this.checked);
+		$('label[for="SparqlQueryParameter"]').toggle(this.checked);
+		$('span.help-inline p.parameterHelp').toggle(this.checked);
+		$('#parameterType').toggle(this.checked);
+		$('label[for="SparqlQueryParameterType"]').toggle(this.checked);
 	});
 </script>

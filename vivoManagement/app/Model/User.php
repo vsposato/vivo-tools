@@ -172,7 +172,7 @@ class User extends AppModel {
  *
  * @var array
  */
-	public $belongsTo = array(
+	/*public $belongsTo = array(
 		'CreatedBy' => array(
 			'className' => 'User',
 			'foreignKey' => 'created_by',
@@ -187,7 +187,7 @@ class User extends AppModel {
 			'fields' => '',
 			'order' => ''
 		)
-	);
+	);*/
 
 /**
  * hasMany associations
@@ -208,7 +208,7 @@ class User extends AppModel {
 			'finderQuery' => '',
 			'counterQuery' => ''
 		),
-		'UsersCreated' => array(
+		/*'UsersCreated' => array(
 			'className' => 'User',
 			'foreignKey' => 'created_by',
 			'dependent' => false,
@@ -233,7 +233,7 @@ class User extends AppModel {
 			'exclusive' => '',
 			'finderQuery' => '',
 			'counterQuery' => ''
-		)
+		)*/
 	);
 
 /**
