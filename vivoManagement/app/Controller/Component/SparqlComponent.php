@@ -94,7 +94,7 @@ class SparqlComponent extends Component {
 				break;
 			case 'rdf':
                 if ($parameterized) {
-                    debug($parameters);
+                    //debug($parameters);
                     $this->_createRDFfromQuery($this->_createHeaderArray($parameters[0], $parameters[1]),$this->_removeHeaderRows($parameters, 2, false));
                 } else {
                     $this->_generateRDF();
@@ -104,6 +104,8 @@ class SparqlComponent extends Component {
                     // We didn't return a file so we failed
                     return false;
                 }
+                //debug($outputFilename);
+                //debug($this->outputFilename);
                 return $this->outputFilename;
 				break;
 			default:
@@ -342,7 +344,7 @@ class SparqlComponent extends Component {
         }
 		// Close out the CURL
 		curl_close($curlInit);
-		debug($this->rawResult);
+		//debug($this->rawResult);
 		return true;
 	}
 
@@ -510,8 +512,9 @@ class SparqlComponent extends Component {
             // We need to create the SPARQL URL that will execute the query
             $this->curlURL = $this->_createFullURL($tempQuery);
 
+            $this->_performSPARQLQuery();
             // Temporary variable to hold the RDF response from SPARQL
-            $tempRDF = $this->_performSPARQLQuery();
+            $tempRDF = $this->rawResult;
             if ($rowCounter == 0) {
                 // If this is the first time through (or first result) then we need to keep the entire document as it has important namespace information
                 try {
@@ -548,7 +551,7 @@ class SparqlComponent extends Component {
         }
         // Return the resultant DOMDocument as XML so we can save it to a file
         $this->rawResult = $resultRDF->saveXML();
-        debug($this->rawResult);
+        //debug($this->rawResult);
     }
 
 }

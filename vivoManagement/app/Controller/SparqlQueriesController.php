@@ -192,10 +192,12 @@ class SparqlQueriesController extends AppController {
 			//die(debug($this->request->data));
 			switch ($this->request->data['Execute']['outputFormat']) {
 				case 'csv':
+                    // Create the core filename for use later
+                    $filename = $this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.csv');
 					// Create the name of the file we will be saving
-					$filename = $this->_generateFileDownloadDirectory() . $this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.csv');
+					$fullFileName = $this->_generateFileDownloadDirectory() . $filename;
 					// Retrieve the filename from the SPARQL query
-					$resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $filename, 'csv');
+					$resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $fullFileName, 'csv');
 					// If it was a success, download the file
 					if ($resultFile) {
 						$this->Session->setFlash(
@@ -206,7 +208,7 @@ class SparqlQueriesController extends AppController {
 								'class' => 'alert-success'
 							)
 						);
-						$this->sendFileDownload($this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.csv'),$this->_generateFileDownloadDirectory(), '.csv');
+                        $this->sendFileDownload($filename,$this->_generateFileDownloadDirectory(), '.csv');
 					} elseif (! $resultFile) {
 						$this->Session->setFlash(
 							__('The %s was not completed successfully!', __('sparql query')),
@@ -219,19 +221,20 @@ class SparqlQueriesController extends AppController {
 					}
 				break;
 				case 'rdf':
+                    // Create the core filename for use later
+                    $filename = $this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.xml');
 					// Create the name of the file we will be saving
-					$filename = $this->_generateFileDownloadDirectory() . $this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.xml');
-
+					$fullFileName = $this->_generateFileDownloadDirectory() . $filename;
                     if ($this->request->data['Execute']['parameter_file']) {
-                        debug($this->request->data['Execute']['parameter_file']['tmp_name']);
+                        //debug($this->request->data['Execute']['parameter_file']['tmp_name']);
                         // There are parameters for this we need to process
                         $parameterData = $this->_readParameterFile($this->request->data['Execute']['parameter_file']['tmp_name']);
                         array_unshift($parameterData, array(0 => $this->request->data['SparqlQuery']['parameter']), array(0 => $this->request->data['SparqlQuery']['parameter_type']));
                         // Retrieve the filename from the SPARQL query
-                        $resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $filename, 'rdf', true, $parameterData);
+                        $resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $fullFileName, 'rdf', true, $parameterData);
                     } else {
                         // Retrieve the filename from the SPARQL query
-                        $resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $filename, 'rdf');
+                        $resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $fullFileName, 'rdf');
                     }
 
                     // If it was a success, download the file
@@ -244,7 +247,7 @@ class SparqlQueriesController extends AppController {
 								'class' => 'alert-success'
 							)
 						);
-						$this->sendFileDownload($this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.xml'),$this->_generateFileDownloadDirectory(), '.xml');
+                        $this->sendFileDownload($filename,$this->_generateFileDownloadDirectory(), '.xml');
 					} elseif (! $resultFile) {
 						$this->Session->setFlash(
 							__('The %s was not completed successfully!', __('sparql query')),
@@ -257,10 +260,12 @@ class SparqlQueriesController extends AppController {
 					}
 				break;
 				case 'tsv':
-					// Create the name of the file we will be saving
-					$filename = $this->_generateFileDownloadDirectory() . $this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.tsv');
+                    // Create the core filename for use later
+                    $filename = $this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.tsv');
+                    // Create the name of the file we will be saving
+					$fullFileName = $this->_generateFileDownloadDirectory() . $filename;
 					// Retrieve the filename from the SPARQL query
-					$resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $filename, 'tsv');
+					$resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $fullFileName, 'tsv');
 					// If it was a success, download the file
 					if ($resultFile) {
 						$this->Session->setFlash(
@@ -271,7 +276,7 @@ class SparqlQueriesController extends AppController {
 								'class' => 'alert-success'
 							)
 						);
-						$this->sendFileDownload($this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.tsv'),$this->_generateFileDownloadDirectory(), '.tsv');
+						$this->sendFileDownload($filename,$this->_generateFileDownloadDirectory(), '.tsv');
 					} elseif (! $resultFile) {
 						$this->Session->setFlash(
 							__('The %s was not completed successfully!', __('sparql query')),
