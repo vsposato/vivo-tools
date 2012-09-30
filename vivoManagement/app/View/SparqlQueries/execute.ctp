@@ -32,7 +32,6 @@
 		    // This is a parameterized query so we need to create the items to capture a parameterized items
 		    echo $this->BootstrapForm->input('Execute.parameter_file', array(
                     'type' => 'file',
-                    'between' => '<br/>'
                 )
             );
             // This will hold the actual parameter value

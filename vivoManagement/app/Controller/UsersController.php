@@ -243,9 +243,9 @@ class UsersController extends AppController {
     private function _createFileArrayRow(File $userFile) {
         // Initialize new files array
         $returnArray = array();
-
+        //debug($userFile);
         // Gather the filename, file size, file type, last modified date, and the full path to the file
-        $returnArray['fileName'] = $userFile->name();
+        $returnArray['fileName'] = $userFile->name;
         $returnArray['fileSize'] = $userFile->size();
         $returnArray['fileType'] = $userFile->mime();
         $returnArray['fileModified'] = $userFile->lastChange();
@@ -257,18 +257,26 @@ class UsersController extends AppController {
     }
 
     public function deleteUserFile() {
-        $deleteUserFile = $this->passedArgs['deleteUserFile'];
-        debug($deleteUserFile);
+        $deleteUserFile = $this->request->query['deleteUserFile'];
         if (strpos($deleteUserFile, $this->Session->read('Auth.User.username'))) {
             if (unlink($deleteUserFile)) {
-                $this->Session->setFlash(__('%s deleted', __('User')),
+                $this->Session->setFlash(__('%s deleted', $deleteUserFile ),
                     'alert',
                     array(
                         'plugin' => 'TwitterBootstrap',
                         'class' => 'alert-success'
                     )
                 );
-                $this->redirect(array('admin' => true, 'controller' => 'users', 'action' => 'index'));
+                $this->redirect($this->referer());
+            } else {
+                $this->Session->setFlash(__('%s was not deleted', $deleteUserFile ),
+                    'alert',
+                    array(
+                        'plugin' => 'TwitterBootstrap',
+                        'class' => 'alert-error'
+                    )
+                );
+                $this->redirect($this->referer());
             }
         }
     }

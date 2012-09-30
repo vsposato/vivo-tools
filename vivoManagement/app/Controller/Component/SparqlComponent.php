@@ -93,7 +93,12 @@ class SparqlComponent extends Component {
 				return $this->outputFilename;
 				break;
 			case 'rdf':
-                $this->_generateRDF();
+                if ($parameterized) {
+                    debug($parameters);
+                    $this->_createRDFfromQuery($this->_createHeaderArray($parameters[0], $parameters[1]),$this->_removeHeaderRows($parameters, 2, false));
+                } else {
+                    $this->_generateRDF();
+                }
                 // We need to output to a file
                 if ( ! $this->_outputToFile() ) {
                     // We didn't return a file so we failed
@@ -267,6 +272,32 @@ class SparqlComponent extends Component {
 		return true;
 	}
 
+    private function _processRDF($inputRDF, $stripHeaders) {
+        // Instantiate the XML reader
+        $rdfResult = new XMLReader();
+        // Load the RDF passed in to the XML reader
+        $rdfResult->XML($inputRDF, "UTF-8");
+        // Check to see if we are supposed to remove the header information
+        if ($stripHeaders) {
+            // We are removing all the beginning header information
+            // Loop through the XML tree to find what we are looking for
+            while ($rdfResult->read()) {
+                // Check to see if this is an ELEMENT node as opposed to a TEXT or attribute
+                if ($rdfResult->nodeType == XMLReader::ELEMENT) {
+                    // Check to see if it is a description node - as this will hold the guts of the data
+                    if ($rdfResult->localName === "Description") {
+                        // Return the node back to the calling function
+                        return $rdfResult->expand();
+                    }
+                }
+            }
+        } elseif (! $stripHeaders) {
+            // We are not supposed to remove headers so send the entire XML document back
+            $rdfResult->read();
+            return $rdfResult->readOuterXML();
+        }
+    }
+
     private function _generateRDF() {
         // Set the output format to JSON as we need JSON to create a CSV
         $this->outputFormat = '&output=json';
@@ -290,17 +321,8 @@ class SparqlComponent extends Component {
 
     }
 	private function _performSPARQLQuery($counter = null) {
-
-		/*
-		 * This function will take a full URL and a query to execute and
-		 * it will perform the query using CURL. It will return the output
-		 * as a string.
-		 *
-		 */
-
 		// Iniitialize CURL for communication with SPARQL endpoint
 		$curlInit = curl_init();
-
 		// Set options for CURL
 		// Set the URL that CURL will talk with to the $fullURL built earlier
 		curl_setopt($curlInit, CURLOPT_URL, $this->curlURL);
@@ -308,10 +330,8 @@ class SparqlComponent extends Component {
 		curl_setopt($curlInit, CURLOPT_RETURNTRANSFER, true);
 		// Execute the CURL and pass response back to $curlReturn
 		$this->rawResult = curl_exec($curlInit);
-
         // Determine the response from the SPARQL server
         $curlResponseCode = curl_getinfo($curlInit, CURLINFO_HTTP_CODE);
-
         // If the response was not 200 (success) and our counter is less than 3 times
         if (($curlResponseCode !== 200) && ($counter < 3)) {
             // We need to call the query again to make sure it wasn't a temporary connection issue
@@ -320,23 +340,26 @@ class SparqlComponent extends Component {
             // This is our 3rd time through so we need to return a false back to the calling function
             return false;
         }
-
 		// Close out the CURL
 		curl_close($curlInit);
-
-		//debug($this->rawResult);
-
+		debug($this->rawResult);
 		return true;
-
 	}
 
 	private function _jsonReturnToArray() {
 		return json_decode($this->rawResult, true);
 	}
 
-	private function _createFullURL() {
-		// URL encode the query so that we can pass it as part of the URL
-		$query = urlencode($this->sparqlQuery);
+	private function _createFullURL($sparqlQuery = null) {
+
+        if ($sparqlQuery) {
+            // URL encode the query so that we can pass it as part of the URL
+            $query = urlencode($sparqlQuery);
+        } elseif (!$sparqlQuery) {
+            // URL encode the query so that we can pass it as part of the URL
+            $query = urlencode($this->sparqlQuery);
+        }
+
 		// Return the full url to the calling function
 		return ($this->sparqlEndpoint . $query . $this->outputFormat);
 	}
@@ -375,6 +398,159 @@ class SparqlComponent extends Component {
 		// Output the well formed header row back to the calling function
 		return $headerReturnRow;
 	}
+
+    private function _createHeaderArray($headerRow, $typeRow) {
+
+        // Create an array to hold the completed header array
+        $headerArray = array();
+
+        foreach ($headerRow as $index=>$value) {
+            // Initialize a blank array to perform our work on
+            $tempArray = array();
+
+            // The index of this column in the header will be carried over to the index key
+            $tempArray['index'] = $index;
+            // Get the value type from the corresponding index of the typeRow
+            $tempArray['valueType'] = $typeRow[$index];
+            // Get the variable value from the header row value
+            $tempArray['key'] = $value;
+            // Place this in the next numeric index available in the array
+            $headerArray[] = $tempArray;
+        }
+        /*	echo "<pre>";
+        print_r($headerArray);
+        echo "</pre>";*/
+
+        // Return the array to the calling function
+        return $headerArray;
+    }
+
+    private function _parameterizeQuery($headerRow, $query, $dataRow) {
+
+        // Initialize a query that can search and replaced
+        $parameterizedQuery = $query;
+
+        // Loop through the headerRow to determine which index is which variable
+        foreach ($headerRow as $key=>$value) {
+            // Create the needle that will be searched - this is the parameter we set in the query
+            $needle = "[" . $value['key'] . "]";
+            $index = $value['index'];
+            // Check to see what type of parameter this is supposed to be so we handle the value correctly
+            switch ($value['valueType']) {
+                case "string":
+                case "String":
+                    // If this is a string value then we need to wrap it in double quotes
+                    $replacement = "\"$dataRow[$index]\"";
+                    break;
+                case "numeric":
+                case "Numeric":
+                    // If this is a numeric value then we don't need to do anything special
+                    $replacement = $dataRow[$index];
+                    break;
+                default:
+                    // If nothing else treat it as a string
+                    $replacement = "\"$dataRow[$index]\"";
+                    break;
+            }
+            // Run the string replace using the needle and replacement created
+            $parameterizedQuery = str_replace($needle, $replacement, $parameterizedQuery);
+        }
+        /*echo "<pre>";
+      print_r($parameterizedQuery);
+      echo "</pre>";*/
+
+        // Return the query to the calling function
+        return $parameterizedQuery;
+    }
+
+    private function _removeHeaderRows($parameterArray, $numOfHeaderRows, $uniqueDataOnly) {
+        // Set up a new array to hold the cleaned data
+        $dataOnly = array();
+
+        // Get the count of the elements in the array -
+        $arrayElementCount = (count($parameterArray) - 1);
+
+        // Loop through the elements starting with 2 to get rid of the header rows
+        for ($i = $numOfHeaderRows; $i < $arrayElementCount; $i++) {
+            // Add the row to the new data only array
+            $dataOnly[] = $parameterArray[$i];
+        }
+        if ($uniqueDataOnly) {
+            // Return a unique value only array
+            return $dataOnly;
+        } elseif (! $uniqueDataOnly) {
+            // Return the new data only array to the calling function
+            return $dataOnly;
+        }
+    }
+
+    private function _createRDFfromQuery($headerArray, $dataOnly) {
+
+        // Set the output format to XML as we need XML to create RDF
+        $this->outputFormat = '&output=xml';
+
+        // Create the master XML string
+        $resultRDF = new DOMDocument('1.0');
+
+        // Initialize a counter variable
+        $rowCounter = 0;
+
+        // Loop through each of the rows of data provided
+        foreach ($dataOnly as $row) {
+            //debug($headerArray);
+            // Replace parameters within query with values from data array
+            $tempQuery = $this->_parameterizeQuery($headerArray, $this->sparqlQuery, $row);
+
+            // Check to make sure that the class has appropriate variables already defined
+            if (! isset($this->sparqlEndpoint) || ! isset($this->sparqlQuery)) {
+                // We don't have things setup like they should be return a false
+                return false;
+            }
+
+            // We need to create the SPARQL URL that will execute the query
+            $this->curlURL = $this->_createFullURL($tempQuery);
+
+            // Temporary variable to hold the RDF response from SPARQL
+            $tempRDF = $this->_performSPARQLQuery();
+            if ($rowCounter == 0) {
+                // If this is the first time through (or first result) then we need to keep the entire document as it has important namespace information
+                try {
+                    // Attempt to run the processRDF and get results back
+                    $returnedXML = $this->_processRDF($tempRDF, false);
+                    if (is_string($returnedXML)) {
+                        // If it returns a String then this is good so process away
+                        $resultRDF->loadXML($returnedXML);
+                        // Increment the rowCounter so we can keep track of how many times through
+                        $rowCounter++;
+                    }
+                } catch (Exception $e) {
+                    // Catch any exceptions that may come through - although we need to probably make this a little more robust
+                    echo "Returned a null result from processRDF - probably didn't find a match - $e";
+                    continue;
+                }
+            } elseif ($rowCounter >= 1) {
+                // If this is not our first time throught (or first result) then we need only the child node of the results
+                try {
+                    // Attempt to run the processRDF and get results back
+                    $returnedXML = $this->_processRDF($tempRDF, true);
+                    if (is_object($returnedXML)) {
+                        // If the processRDF returned an object - then we are good to continue processing - append this child to overall document
+                        $resultRDF->documentElement->appendChild($returnedXML);
+                        // Increment the rowCounter so we can keep track of how many times through
+                        $rowCounter++;
+                    }
+                } catch (Exception $e) {
+                    // Catch any exceptions that may come through - although we need to probably make this a little more robust
+                    echo "Returned a null result from processRDF - probably didn't find a match - $e";
+                    continue;
+                }
+            }
+        }
+        // Return the resultant DOMDocument as XML so we can save it to a file
+        $this->rawResult = $resultRDF->saveXML();
+        debug($this->rawResult);
+    }
+
 }
 
 ?>

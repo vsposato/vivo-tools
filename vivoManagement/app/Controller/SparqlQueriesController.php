@@ -16,7 +16,7 @@ class SparqlQueriesController extends AppController {
  *
  * @var array
  */
-	public $helpers = array('TwitterBootstrap.BootstrapHtml', 'TwitterBootstrap.BootstrapForm', 'TwitterBootstrap.BootstrapPaginator', 'CakeNumber');
+	public $helpers = array('TwitterBootstrap.BootstrapHtml', 'TwitterBootstrap.BootstrapForm', 'TwitterBootstrap.BootstrapPaginator', 'Number');
 /**
  * Components
  *
@@ -221,9 +221,20 @@ class SparqlQueriesController extends AppController {
 				case 'rdf':
 					// Create the name of the file we will be saving
 					$filename = $this->_generateFileDownloadDirectory() . $this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.xml');
-					// Retrieve the filename from the SPARQL query
-					$resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $filename, 'rdf');
-					// If it was a success, download the file
+
+                    if ($this->request->data['Execute']['parameter_file']) {
+                        debug($this->request->data['Execute']['parameter_file']['tmp_name']);
+                        // There are parameters for this we need to process
+                        $parameterData = $this->_readParameterFile($this->request->data['Execute']['parameter_file']['tmp_name']);
+                        array_unshift($parameterData, array(0 => $this->request->data['SparqlQuery']['parameter']), array(0 => $this->request->data['SparqlQuery']['parameter_type']));
+                        // Retrieve the filename from the SPARQL query
+                        $resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $filename, 'rdf', true, $parameterData);
+                    } else {
+                        // Retrieve the filename from the SPARQL query
+                        $resultFile = $this->Sparql->generateDownload($this->request->data['SparqlQuery']['sparql_query'], $filename, 'rdf');
+                    }
+
+                    // If it was a success, download the file
 					if ($resultFile) {
 						$this->Session->setFlash(
 							__('The %s completed successfully. Please check your downloads directory!', __('sparql query')),
@@ -322,7 +333,7 @@ class SparqlQueriesController extends AppController {
                 $directory = $this->request->query['directory'] . "/";
             }
             if (! $extension) {
-                $extension = $this->request->query['extension'];
+                $extension = '.' . $this->request->query['extension'];
             }
         }
 		$this->viewClass = 'Media';
@@ -362,5 +373,34 @@ class SparqlQueriesController extends AppController {
 			return false;
 		}
 	}
+
+    private function _readParameterFile($parameterFile) {
+        // First check to see if the file exists
+        if (! file_exists($parameterFile)) {
+            // If it doesn't exist then error out
+            echo "Parameter file does not exists - $$parameterFile";
+            return false;
+        }
+        try {
+            // Open the Parameter file
+            $parameterFileHandle = fopen($parameterFile, 'r');
+
+            // Initialize a blanke SPARQL query string
+            $parameterArray = array();
+
+            while (! feof($parameterFileHandle) ) {
+                // Get a row of data from the CSV parameter file and add it to the numeric indexed array
+                $parameterArray[] = fgetcsv($parameterFileHandle);
+            }
+            // Return the SPARQL query back to the calling function
+            return $parameterArray;
+
+        } catch (Exception $e) {
+            // Something happened and we couldn't complete the read of the parameter CSV file
+            echo "Exception in readParameterFile function - $e";
+            print_r($e);
+            exit;
+        }
+    }
 
 }

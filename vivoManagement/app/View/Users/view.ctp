@@ -61,7 +61,7 @@
                 <div class="btn-group">
                     <?php
                         echo $this->Html->link(__('Download'), array('controller' => 'sparql_queries', 'action' => 'sendFileDownload', '?' => array('filename' => $userFile['fileName'], 'directory' => $userFile['fileDir'], 'extension' => $userFile['fileExt'])), array('class' => 'btn btn-mini'));
-                        echo $this->Form->postLink(__('Delete'), array('action' => 'deleteUserFile', 'deleteUserFile' => $userFile['filePath']), array('class' => 'btn btn-mini btn-danger'), __('Are you sure you want to delete  %s?', $userFile['fileName']));
+                        echo $this->Html->link(__('Delete'), array('action' => 'deleteUserFile', '?' => array('deleteUserFile' => $userFile['filePath'])), array('class' => 'btn btn-mini btn-danger'), __('Are you sure you want to delete  %s?', $userFile['fileName']));
                     ?>
                 </div>
             </td>
@@ -69,16 +69,6 @@
         <?php } ?>
     </tbody>
     <tfoot>
-    <tr>
-        <td colspan="2"></td>
-        <td colspan="2">
-            <div class="btn-group">
-                <?php
-                echo $this->Html->link(__('Add New User'), array('action' => 'add'), array('class' => 'btn btn-medium btn-primary'));
-                ?>
-            </div>
-        </td>
-    </tr>
     </tfoot>
     </table>
 
