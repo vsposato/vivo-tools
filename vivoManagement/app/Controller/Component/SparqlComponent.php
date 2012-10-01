@@ -36,7 +36,7 @@ class SparqlComponent extends Component {
 		$this->sparqlEndpoint = Configure::read('sparqlEndpoint');
 	}
 
-	public function generateDownload($sparqlQuery = null, $outputFilename = null, $outputFormat = null, $parameterized = false, $parameters = array()) {
+	public function generateResults($sparqlQuery = null, $outputFilename = null, $outputFormat = null, $parameterized = false, $parameters = array()) {
 		// Check to see if the SPARQL query came in
 		if ($sparqlQuery == null || ! isset($sparqlQuery) ) {
 			// No SPARQL submitted so return a false
@@ -45,7 +45,6 @@ class SparqlComponent extends Component {
 			// We passed a SPARQL query in so lets set that
 			$this->sparqlQuery = $sparqlQuery;
 		}
-
 		// Check to see if the output filename came in
 		if ($outputFilename == null || ! isset($outputFilename) ) {
 			// No output filename submitted so return a false
@@ -54,7 +53,6 @@ class SparqlComponent extends Component {
 			// We passed an output filename so lets set it
 			$this->outputFilename = $outputFilename;
 		}
-
 		// Check to see if the output format came in
 		if ($outputFormat == null || ! isset($outputFormat) ) {
 			// No output format submitted so return a false
@@ -67,30 +65,35 @@ class SparqlComponent extends Component {
 				return false;
 			}
 		}
-
 		switch ($outputFormat) {
 			case 'csv':
 				// We need to generate the array to output to CSV
 				$this->_generateArray();
-
 				// We need to output to a file
 				if ( ! $this->_outputToCSV(false) ) {
 					// We didn't return a file so we failed
 					return false;
 				}
-
 				return $this->outputFilename;
 				break;
 			case 'tsv':
 				// We need to generate the array to output to CSV
 				$this->_generateArray();
-
 				// We need to output to a file
 				if ( ! $this->_outputToCSV(true) ) {
 					// We didn't return a file so we failed
 					return false;
 				}
 				return $this->outputFilename;
+				break;
+            case 'array':
+				// We need to generate the array to return to calling function
+				if (! $this->_generateArray()) {
+                    // We didn't get results back so return false
+                    return false;
+                }
+				// We need to return the created array
+				return $this->sparqlArrayReturn;
 				break;
 			case 'rdf':
                 if ($parameterized) {
@@ -104,46 +107,18 @@ class SparqlComponent extends Component {
                     // We didn't return a file so we failed
                     return false;
                 }
-                //debug($outputFilename);
-                //debug($this->outputFilename);
                 return $this->outputFilename;
 				break;
 			default:
                 // We need to generate the array to output to CSV
                 $this->_generateArray();
-
                 // We need to output to a file
                 if ( ! $this->_outputToCSV(false) ) {
                     // We didn't return a file so we failed
                     return false;
                 }
-
                 return $this->outputFilename;
                 break;
-		}
-
-	}
-
-	public function generateDisplay($sparqlQuery = null, $outputFormat = null) {
-		// Check to see if the SPARQL query came in
-		if ($sparqlQuery == null || ! isset($sparqlQuery) ) {
-			// No SPARQL submitted so return a false
-			return false;
-		} else {
-			// We passed a SPARQL query in so lets set that
-			$this->sparqlQuery = $sparqlQuery;
-		}
-		// Check to see if the output format came in
-		if ($outputFormat == null || ! isset($outputFormat) ) {
-			// No output format submitted so return a false
-			return false;
-		} else {
-			// We passed an output format so lets set it
-			$this->outputFormat = $this->_setOutputFormat($outputFormat);
-			// Check to make sure we got a valid format returned
-			if ( ! $this->outputFormat ) {
-				return false;
-			}
 		}
 
 	}
@@ -301,8 +276,8 @@ class SparqlComponent extends Component {
     }
 
     private function _generateRDF() {
-        // Set the output format to JSON as we need JSON to create a CSV
-        $this->outputFormat = '&output=json';
+        // Set the output format to XML as we need XML to output to a file
+        $this->outputFormat = '&output=xml';
 
         // Check to make sure that the class has appropriate variables already defined
         if (! isset($this->sparqlEndpoint) || ! isset($this->sparqlQuery)) {
