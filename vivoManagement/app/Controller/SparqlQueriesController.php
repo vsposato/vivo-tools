@@ -196,8 +196,17 @@ class SparqlQueriesController extends AppController {
                     $filename = $this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.csv');
 					// Create the name of the file we will be saving
 					$fullFileName = $this->_generateFileDownloadDirectory() . $filename;
-					// Retrieve the filename from the SPARQL query
-					$resultFile = $this->Sparql->generateResults($this->request->data['SparqlQuery']['sparql_query'], $fullFileName, 'csv');
+                    if ($this->request->data['Execute']['parameter_file']) {
+                        //debug($this->request->data['Execute']['parameter_file']['tmp_name']);
+                        // There are parameters for this we need to process
+                        $parameterData = $this->_readParameterFile($this->request->data['Execute']['parameter_file']['tmp_name']);
+                        array_unshift($parameterData, array(0 => $this->request->data['SparqlQuery']['parameter']), array(0 => $this->request->data['SparqlQuery']['parameter_type']));
+                        // Retrieve the filename from the SPARQL query
+                        $resultFile = $this->Sparql->generateResults($this->request->data['SparqlQuery']['sparql_query'], $fullFileName, 'csv', true, $parameterData);
+                    } else {
+                        // Retrieve the filename from the SPARQL query
+                        $resultFile = $this->Sparql->generateResults($this->request->data['SparqlQuery']['sparql_query'], $fullFileName, 'csv');
+                    }
 					// If it was a success, download the file
 					if ($resultFile) {
 						$this->Session->setFlash(

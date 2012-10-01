@@ -51,10 +51,15 @@
 	<!-- Insert the header navigation here -->
 	<?php echo $this->element('top_nav'); ?>
 	<div class="container">
-
 		<?php echo $this->Session->flash(); ?>
-
-		<?php echo $this->fetch('content'); ?>
+        <div class="row-fluid">
+            <div class="span2">
+                <?php echo $this->element('left_sidebar'); ?>
+            </div>
+            <div class="span10">
+                <?php echo $this->fetch('content'); ?>
+            </div>
+        </div>
 
 	</div> <!-- /container -->
 

@@ -67,8 +67,12 @@ class SparqlComponent extends Component {
 		}
 		switch ($outputFormat) {
 			case 'csv':
-				// We need to generate the array to output to CSV
-				$this->_generateArray();
+                if ($parameterized) {
+                    $this->_generateParameterizedArray($this->_createHeaderArray($parameters[0], $parameters[1]),$this->_removeHeaderRows($parameters, 2, false));
+                } else {
+                    // We need to generate the array to output to CSV
+                    $this->_generateArray();
+                }
 				// We need to output to a file
 				if ( ! $this->_outputToCSV(false) ) {
 					// We didn't return a file so we failed
@@ -77,8 +81,12 @@ class SparqlComponent extends Component {
 				return $this->outputFilename;
 				break;
 			case 'tsv':
-				// We need to generate the array to output to CSV
-				$this->_generateArray();
+                if ($parameterized) {
+                    $this->_generateParameterizedArray($this->_createHeaderArray($parameters[0], $parameters[1]),$this->_removeHeaderRows($parameters, 2, false));
+                } else {
+                    // We need to generate the array to output to CSV
+                    $this->_generateArray();
+                }
 				// We need to output to a file
 				if ( ! $this->_outputToCSV(true) ) {
 					// We didn't return a file so we failed
@@ -87,10 +95,17 @@ class SparqlComponent extends Component {
 				return $this->outputFilename;
 				break;
             case 'array':
-				// We need to generate the array to return to calling function
-				if (! $this->_generateArray()) {
-                    // We didn't get results back so return false
-                    return false;
+                if ($parameterized) {
+                    if (! $this->_generateParameterizedArray($this->_createHeaderArray($parameters[0], $parameters[1]),$this->_removeHeaderRows($parameters, 2, false))) {
+                        // We didn't get results back so return false
+                        return false;
+                    }
+                } else {
+                    // We need to generate the array to return to calling function
+                    if (! $this->_generateArray()) {
+                        // We didn't get results back so return false
+                        return false;
+                    }
                 }
 				// We need to return the created array
 				return $this->sparqlArrayReturn;
@@ -211,41 +226,79 @@ class SparqlComponent extends Component {
         return true;
     }
 
-	private function _generateArray() {
+    private function _generateParameterizedArray($headerArray, $dataOnly) {
+        // Set the output format to JSON as we need JSON to create a CSV
+        $this->outputFormat = '&output=json';
+        // Create the master XML string
+        $resultArray = array();
+        // Initialize a counter variable
+        $rowCounter = 0;
+        // Loop through each of the rows of data provided
+        foreach ($dataOnly as $row) {
+            // Replace parameters within query with values from data array
+            $tempQuery = $this->_parameterizeQuery($headerArray, $this->sparqlQuery, $row);
+            // Check to make sure that the class has appropriate variables already defined
+            if (! isset($this->sparqlEndpoint) || ! isset($this->sparqlQuery)) {
+                // We don't have things setup like they should be return a false
+                return false;
+            }
+            // Run the generate array command with the parameterized query
+            $this->_generateArray($tempQuery);
+            // Temporary variable to hold the RDF response from SPARQL
+            //$tempResult = $this->_jsonReturnToArray() $this->rawResult;
+            if ($rowCounter == 0) {
+                // If this is the first time through (or first result) then we need to keep the entire array as it has the header information in it
+                $resultArray = array_merge($resultArray, $this->sparqlArrayReturn);
+            } elseif ($rowCounter >= 1) {
+                // If this is not our first time throught (or first result) then we need only the data results
+                // Shift the first row off of the array as this contains header data
+                array_shift($this->sparqlArrayReturn);
+                // Now merge the remaining items back into the resulting array
+                $resultArray = array_merge($resultArray, $this->sparqlArrayReturn);
+            }
+            // Incrememnt our counter to keep track of loops through
+            $rowCounter++;
+        }
+        // Return the resultant array back to the main sparqlArrayReturn
+        // Clear sparqlArrayReturn first
+        unset($this->sparqlArrayReturn);
+        // Set the results
+        $this->sparqlArrayReturn = array_merge($resultArray);
+        debug($this->sparqlArrayReturn);
+    }
+
+	private function _generateArray($altQuery = null) {
 		// Set the output format to JSON as we need JSON to create a CSV
 		$this->outputFormat = '&output=json';
-
 		// Check to make sure that the class has appropriate variables already defined
 		if (! isset($this->sparqlEndpoint) || ! isset($this->sparqlQuery)) {
 			// We don't have things setup like they should be return a false
 			return false;
 		}
-
-		// We need to create the SPARQL URL that will execute the query
-		$this->curlURL = $this->_createFullURL();
-
+        if ($altQuery) {
+            // We need to create the SPARQL URL that will execute the query
+            $this->curlURL = $this->_createFullURL($altQuery);
+        } elseif (!$altQuery) {
+            // We need to create the SPARQL URL that will execute the query
+            $this->curlURL = $this->_createFullURL();
+        }
 		// Reset the SPARQL array return so that we know it is clean
 		$this->sparqlArrayReturn = array();
-
 		// Perform the SPARQL query at hand
 		if ( ! $this->_performSPARQLQuery() ) {
 			// We received a false back, so something must have happened return false result
 			return false;
 		}
-
 		// Set raw result to an array as it comes back in JSON format
 		$rawResultArray = $this->_jsonReturnToArray($this->rawResult);
 		//debug($rawResultArray);
-
 		// Set the header row to appropriate column headers
 		$this->sparqlArrayReturn[] = $this->_csvHeaderRowBuilder($rawResultArray['head']['vars']);
-
 		// Parse each row of data to be turned into a row in the CSV
 		foreach ($rawResultArray['results']['bindings'] as $row) {
 			// Append the next row in a well-formatted array
 			$this->sparqlArrayReturn[] = $this->_csvDataRowBuilder($rawResultArray['head']['vars'], $row);
 		}
-
 		return true;
 	}
 
