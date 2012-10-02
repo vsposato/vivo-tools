@@ -20,8 +20,8 @@
 	<?php
 		echo $this->Html->css('bootstrap-responsive');
 		echo $this->Html->css('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/start/jquery-ui.css');
-		echo $this->Html->script(array('https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js'), array('block' => 'script'));
-		echo $this->Html->script(array('https:////ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js'), array('block' => 'script'));
+        echo $this->Html->script('https:////ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js');
+        echo $this->Html->script('https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js');
 	?>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script>
 	<?php
@@ -66,5 +66,6 @@
 	<!-- Le javascript
     ================================================== -->
 	<!-- Placed at the end of the document so the pages load faster -->
+    <?php echo $this->element('modal_change_password'); ?>
 </body>
 </html>

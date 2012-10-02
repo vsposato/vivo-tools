@@ -56,13 +56,18 @@ class AppController extends Controller {
 	 */
 	 public $components = array(
 	 	'Auth',
+        'Acl',
 	 	'RequestHandler',
 	 	'Session',
 	 	'Security'
 	 );
 
 	 public function beforeFilter() {
-
+        //Configure AuthComponent
+         $this->Auth->authorize = array(
+             'Controller',
+             'Actions' => array('actionPath' => 'controllers')
+         );
 		 $this->Auth->authenticate = array('Form');
 		 $this->Auth->loginAction = array(
 		 	'admin' => false,
@@ -77,5 +82,8 @@ class AppController extends Controller {
 		 );
 		 $this->Auth->logoutRedirect = array('admin' => false, 'controller' => 'users', 'action' => 'login');
 	 }
-
+    function isAuthorized($user) {
+        // return false;
+        return $this->Auth->loggedIn();
+    }
 }

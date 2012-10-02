@@ -42,5 +42,3 @@
 </table>
 
 <?php echo $this->BootstrapPaginator->pagination(); ?>
-
-<?php echo $this->element('modal_execute_sparql'); ?>

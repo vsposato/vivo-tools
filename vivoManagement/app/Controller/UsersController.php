@@ -22,7 +22,23 @@ class UsersController extends AppController {
  *
  * @var array
  */
-	public $components = array('Session');
+	public $components = array(
+        'Session',
+        'Security' => array(
+            'unlockedFields' => array(
+                'User.current_password',
+                'User.retype_password'
+            )
+        )
+    );
+
+    public function beforeFilter() {
+        $this->Security->blackHoleCallback = 'blackhole';
+    }
+
+    public function blackhole($type) {
+        debug($type);
+    }
 /**
  * index method
  *
@@ -278,6 +294,104 @@ class UsersController extends AppController {
                 );
                 $this->redirect($this->referer());
             }
+        }
+    }
+    public function change_password() {
+
+        // The user id of the person who is changing their password
+        $id = $this->Auth->user('id');
+
+        if ($this->request->is('get')) {
+            // We do not want to accept get passes as it is less secure
+            throw new MethodNotAllowedException();
+        }
+
+        // Assign the passed user id into the User model
+        $this->User->id = $id;
+
+        if ($this->request->is('ajax')) {
+            // Ajax does not need to render a view
+            $this->autoRender=false;
+        }
+
+        if ( ! empty($this->request->data) ) {
+            if ( AuthComponent::password($this->request->data['User']['current_password']) == $this->User->field('password')) {
+                // The current password matches the provided current password so we will now process the rest of the call
+                // We need to add the user id to the request data so that CakePHP will treat it as an update and not an add
+                $this->request->data['User']['id'] = $id;
+
+                if ($this->request->data['User']['new_password'] == $this->request->data['User']['retype_password']) {
+                    // The new password matched the retype of the new password
+                    if ($this->User->validPassword($this->request->data['User']['new_password'])) {
+                        // The new password passes the strength test
+
+                        $this->request->data['User']['password'] = $this->request->data['User']['new_password'];
+                        $this->request->data['User']['modified_by'] = $this->Auth->user('id');
+
+                        if ( $this->User->save($this->request->data, array('validate' => false)) ) {
+                            if ($this->request->isAjax()) {
+                                $this->Session->setFlash(
+                                    __('The %s has been changed', __('password')),
+                                    'alert',
+                                    array(
+                                        'plugin' => 'TwitterBootstrap',
+                                        'class' => 'alert-success'
+                                    )
+                                );
+                            } else {
+                                $this->Session->setFlash(
+                                    __('The %s has been changed', __('password')),
+                                    'alert',
+                                    array(
+                                        'plugin' => 'TwitterBootstrap',
+                                        'class' => 'alert-success'
+                                    )
+                                );
+                            }
+                        } else {
+                            $this->Session->setFlash(
+                                __('Your %s was not changed', __('password')),
+                                'alert',
+                                array(
+                                    'plugin' => 'TwitterBootstrap',
+                                    'class' => 'alert-error'
+                                )
+                            );
+                        }
+                    } else {
+                        // New password didn't meet complexity requirements
+                        $this->Session->setFlash(
+                            __('Your %s was not changed - password complexity requirements not met. Minimum 8 characters with at least 1 number or special character, 1 lowercase letter,  and 1 uppercase!', __('password')),
+                            'alert',
+                            array(
+                                'plugin' => 'TwitterBootstrap',
+                                'class' => 'alert-error'
+                            )
+                        );
+                    }
+                } else {
+                    // New password and retype password didn't match
+                    $this->Session->setFlash(
+                        __('Your %s was not changed - passwords provided didn\'t match', __('password')),
+                        'alert',
+                        array(
+                            'plugin' => 'TwitterBootstrap',
+                            'class' => 'alert-error'
+                        )
+                    );
+                }
+            } else {
+                $this->Session->setFlash(
+                    __('Your %s was not changed - current password incorrect', __('password')),
+                    'alert',
+                    array(
+                        'plugin' => 'TwitterBootstrap',
+                        'class' => 'alert-error'
+                    )
+                );
+            }
+        } else {
+            $this->request->data = $this->User->read(null, $id);
         }
     }
 

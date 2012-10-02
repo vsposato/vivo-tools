@@ -68,7 +68,10 @@ class SparqlComponent extends Component {
 		switch ($outputFormat) {
 			case 'csv':
                 if ($parameterized) {
-                    $this->_generateParameterizedArray($this->_createHeaderArray($parameters[0], $parameters[1]),$this->_removeHeaderRows($parameters, 2, false));
+                    if (! $this->_generateParameterizedArray($this->_createHeaderArray($parameters[0], $parameters[1]),$this->_removeHeaderRows($parameters, 2, false))){
+                        // Didn't get a good return from the result generator so return a false
+                        return false;
+                    }
                 } else {
                     // We need to generate the array to output to CSV
                     $this->_generateArray();
@@ -82,7 +85,10 @@ class SparqlComponent extends Component {
 				break;
 			case 'tsv':
                 if ($parameterized) {
-                    $this->_generateParameterizedArray($this->_createHeaderArray($parameters[0], $parameters[1]),$this->_removeHeaderRows($parameters, 2, false));
+                    if (! $this->_generateParameterizedArray($this->_createHeaderArray($parameters[0], $parameters[1]),$this->_removeHeaderRows($parameters, 2, false))) {
+                        // We didn't get results back so return false
+                        return false;
+                    }
                 } else {
                     // We need to generate the array to output to CSV
                     $this->_generateArray();
@@ -113,7 +119,10 @@ class SparqlComponent extends Component {
 			case 'rdf':
                 if ($parameterized) {
                     //debug($parameters);
-                    $this->_createRDFfromQuery($this->_createHeaderArray($parameters[0], $parameters[1]),$this->_removeHeaderRows($parameters, 2, false));
+                    if (! $this->_createRDFfromQuery($this->_createHeaderArray($parameters[0], $parameters[1]),$this->_removeHeaderRows($parameters, 2, false))) {
+                        // We didn't get results back so return false
+                        return false;
+                    }
                 } else {
                     $this->_generateRDF();
                 }
@@ -135,7 +144,6 @@ class SparqlComponent extends Component {
                 return $this->outputFilename;
                 break;
 		}
-
 	}
 
 	private function _setOutputFormat($outputFormat) {
@@ -264,7 +272,8 @@ class SparqlComponent extends Component {
         unset($this->sparqlArrayReturn);
         // Set the results
         $this->sparqlArrayReturn = array_merge($resultArray);
-        debug($this->sparqlArrayReturn);
+        //debug($this->sparqlArrayReturn);
+        return true;
     }
 
 	private function _generateArray($altQuery = null) {
@@ -580,6 +589,7 @@ class SparqlComponent extends Component {
         // Return the resultant DOMDocument as XML so we can save it to a file
         $this->rawResult = $resultRDF->saveXML();
         //debug($this->rawResult);
+        return true;
     }
 
 }

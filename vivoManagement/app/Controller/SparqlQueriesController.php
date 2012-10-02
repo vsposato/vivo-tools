@@ -96,7 +96,7 @@ class SparqlQueriesController extends AppController {
 			throw new NotFoundException(__('Invalid %s', __('sparql query')));
 		}
 		if ($this->request->is('post') || $this->request->is('put')) {
-            debug($this->request->data);
+            //debug($this->request->data);
             if (! $this->request->data['SparqlQuery']['parameterized'] ) {
                 // If we are not parameterizing the query then we need to remove validation
                 $this->SparqlQuery->validator()->remove('parameter');

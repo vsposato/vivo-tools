@@ -25,6 +25,7 @@ class User extends AppModel {
  */
  	public $displayField = 'full_name';
 
+    public $actsAs = array('Acl' => array('type' => 'requester'));
 /**
  * Validation rules
  *
@@ -168,28 +169,6 @@ class User extends AppModel {
 	//The Associations below have been created with all possible keys, those that are not needed can be removed
 
 /**
- * belongsTo associations
- *
- * @var array
- */
-	/*public $belongsTo = array(
-		'CreatedBy' => array(
-			'className' => 'User',
-			'foreignKey' => 'created_by',
-			'conditions' => '',
-			'fields' => '',
-			'order' => ''
-		),
-		'ModifiedBy' => array(
-			'className' => 'User',
-			'foreignKey' => 'modified_by',
-			'conditions' => '',
-			'fields' => '',
-			'order' => ''
-		)
-	);*/
-
-/**
  * hasMany associations
  *
  * @var array
@@ -207,33 +186,7 @@ class User extends AppModel {
 			'exclusive' => '',
 			'finderQuery' => '',
 			'counterQuery' => ''
-		),
-		/*'UsersCreated' => array(
-			'className' => 'User',
-			'foreignKey' => 'created_by',
-			'dependent' => false,
-			'conditions' => '',
-			'fields' => '',
-			'order' => '',
-			'limit' => '',
-			'offset' => '',
-			'exclusive' => '',
-			'finderQuery' => '',
-			'counterQuery' => ''
-		),
-		'UsersModified' => array(
-			'className' => 'User',
-			'foreignKey' => 'modified_by',
-			'dependent' => false,
-			'conditions' => '',
-			'fields' => '',
-			'order' => '',
-			'limit' => '',
-			'offset' => '',
-			'exclusive' => '',
-			'finderQuery' => '',
-			'counterQuery' => ''
-		)*/
+		)
 	);
 
 /**
@@ -245,5 +198,63 @@ class User extends AppModel {
 	 	    parent::__construct($id, $table, $ds);
 	 	    $this->virtualFields['full_name'] = sprintf('CONCAT(%s.last_name, ", ", %s.first_name)', $this->alias, $this->alias);
  	}
+    /**
+     * beforeSave function.
+     *
+     * @access public
+     * @return void
+     */
+    public function beforeSave() {
+
+        // Run the parent's beforeSave
+        parent::beforeSave();
+
+        // We will need to hash the password here
+        if (! empty($this->data['User']['password']) && isset($this->data['User']['password']) ) {
+            // The password was submitted as part of the update, so we need to hash the password
+            $this->data['User']['password'] = AuthComponent::password($this->data['User']['password']);
+        }
+
+        if (isset($this->data['User']['password'])) {
+            // We need to set the expiration date of the user
+            $expiration_date = date( "Y-m-d H:i",(time() + PASSWORD_EXPIRATION_DAYS));
+            $this->data['User']['expiration_date'] = $expiration_date;
+        }
+
+        return true;
+    }
+    /**
+     * parentNode function.
+     *
+     * @access public
+     * @return void
+     */
+    public function parentNode() {
+        if (!$this->id && empty($this->data)) {
+            return null;
+        }
+        if (isset($this->data['User']['group_id'])) {
+            $groupId = $this->data['User']['group_id'];
+        } else {
+            $groupId = $this->field('group_id');
+        }
+        if (!$groupId) {
+            return null;
+        } else {
+            return array('Group' => array('id' => $groupId));
+        }
+    }
+
+    /**
+     * validPassword function.
+     *
+     * @access public
+     * @param mixed $password (default: null)
+     * @return void
+     */
+    public function validPassword($password = null) {
+
+        return preg_match("/(?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/", $password);
+    }
 
 }
