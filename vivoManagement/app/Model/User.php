@@ -237,12 +237,7 @@ class User extends AppModel {
 
         return true;
     }
-    /**
-     * parentNode function.
-     *
-     * @access public
-     * @return void
-     */
+
     public function parentNode() {
         if (!$this->id && empty($this->data)) {
             return null;
@@ -258,7 +253,6 @@ class User extends AppModel {
             return array('Group' => array('id' => $groupId));
         }
     }
-
     /**
      * validPassword function.
      *

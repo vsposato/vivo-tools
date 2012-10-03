@@ -23,7 +23,6 @@ class UsersController extends AppController {
  * @var array
  */
 	public $components = array(
-        'Session',
         'Security' => array(
             'unlockedFields' => array(
                 'User.current_password',

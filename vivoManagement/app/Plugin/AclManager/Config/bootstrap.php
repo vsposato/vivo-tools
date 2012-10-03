@@ -17,15 +17,16 @@
  * List of AROs (Class aliases)
  * Order is important! Parent to Children
  */
-Configure::write('AclManager.aros', array('Group', 'User'));
+Configure::write('AclManager.aros', array('Group','User'));
 
 /**
  * Limit used to paginate AROs
  * Replace {alias} with ARO alias
  * Configure::write('AclManager.{alias}.limit', 3)
  */
-Configure::write('AclManager.Group.limit', 3);
-Configure::write('AclManager.User.limit', 3);
+Configure::write('AclManager.Group.limit', 2);
+Configure::write('AclManager.User.limit', 2);
+
 /**
  * Routing Prefix
  * Set the prefix you would like to restrict the plugin to
@@ -37,8 +38,8 @@ Configure::write('AclManager.User.limit', 3);
  * Ugly identation?
  * Turn off when using CSS
  */
-Configure::write('AclManager.uglyIdent', true);
-				
+Configure::write('AclManager.uglyIdent', false);
+
 /**
  * Actions to ignore when looking for new ACOs
  * Format: 'action', 'Controller/action' or 'Plugin.Controller/action'
@@ -55,7 +56,7 @@ Configure::write('AclManager.ignoreActions', array('isAuthorized'));
  * END OF USER SETTINGS
  */
 
-Configure::write("AclManager.version", "1.2.4");
+Configure::write("AclManager.version", "1.2.3");
 if (!is_array(Configure::read('AclManager.aros'))) {
 	Configure::write('AclManager.aros', array(Configure::read('AclManager.aros')));
 }

@@ -55,8 +55,8 @@ class AppController extends Controller {
 	 *
 	 */
 	 public $components = array(
-	 	'Auth',
         'Acl',
+	 	'Auth',
 	 	'RequestHandler',
 	 	'Session',
 	 	'Security'
@@ -69,7 +69,7 @@ class AppController extends Controller {
              'Controller',
              'Actions' => array('actionPath' => 'controllers')
          );
-		 $this->Auth->loginAction = array(
+         $this->Auth->loginAction = array(
 		 	'admin' => false,
 		 	'controller' => 'users',
 		 	'action' => 'login'
