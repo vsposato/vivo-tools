@@ -1,48 +1,30 @@
-<div class="row-fluid">
-	<div class="span9">
-		<h2><?php echo __('List %s', __('Groups'));?></h2>
+<h2><?php echo __('List %s', __('Groups'));?></h2>
+<table class="table table-hover table-condensed">
+    <tr>
+        <th><?php echo $this->BootstrapPaginator->sort('group_name');?></th>
+        <th><?php echo $this->BootstrapPaginator->sort('created');?></th>
+        <th><?php echo $this->BootstrapPaginator->sort('modified');?></th>
+        <th><?php echo $this->BootstrapPaginator->sort('created_by');?></th>
+        <th class="actions"><?php echo __('Actions');?></th>
+    </tr>
+<?php foreach ($groups as $group): ?>
+    <tr>
+        <td><?php echo h($group['Group']['group_name']); ?>&nbsp;</td>
+        <td><?php echo h($this->Time->niceShort($group['Group']['created'])); ?>&nbsp;</td>
+        <td><?php echo h($this->Time->niceShort($group['Group']['modified'])); ?>&nbsp;</td>
+        <td>
+            <?php echo $this->Html->link($group['GroupCreatedBy']['full_name'], array('controller' => 'users', 'action' => 'view', $group['GroupCreatedBy']['id'])); ?>
+        </td>
+        <td class="actions">
+            <div class="btn-group">
+                <?php echo $this->Html->link(__('View'), array('action' => 'view', $group['Group']['id']), array('class' => 'btn btn-mini')); ?>
+                <?php echo $this->Html->link(__('Edit'), array('action' => 'edit', $group['Group']['id']), array('class' => 'btn btn-mini')); ?>
+                <?php echo $this->Form->postLink(__('Delete'), array('action' => 'delete', $group['Group']['id']), array('class' => 'btn btn-mini btn-danger'), __('Are you sure you want to delete # %s?', $group['Group']['id'])); ?>
+            </div>
+        </td>
+    </tr>
+<?php endforeach; ?>
+    <caption align="bottom"><?php echo $this->BootstrapPaginator->counter(array('format' => __('Page {:page} of {:pages}, showing {:current} records out of {:count} total, starting on record {:start}, ending on {:end}')));?></caption>
+</table>
 
-		<p>
-			<?php echo $this->BootstrapPaginator->counter(array('format' => __('Page {:page} of {:pages}, showing {:current} records out of {:count} total, starting on record {:start}, ending on {:end}')));?>
-		</p>
-
-		<table class="table">
-			<tr>
-				<th><?php echo $this->BootstrapPaginator->sort('id');?></th>
-				<th><?php echo $this->BootstrapPaginator->sort('group_name');?></th>
-				<th><?php echo $this->BootstrapPaginator->sort('created');?></th>
-				<th><?php echo $this->BootstrapPaginator->sort('modified');?></th>
-				<th><?php echo $this->BootstrapPaginator->sort('created_by');?></th>
-				<th class="actions"><?php echo __('Actions');?></th>
-			</tr>
-		<?php foreach ($groups as $group): ?>
-			<tr>
-				<td><?php echo h($group['Group']['id']); ?>&nbsp;</td>
-				<td><?php echo h($group['Group']['group_name']); ?>&nbsp;</td>
-				<td><?php echo h($group['Group']['created']); ?>&nbsp;</td>
-				<td><?php echo h($group['Group']['modified']); ?>&nbsp;</td>
-				<td>
-					<?php echo $this->Html->link($group['GroupCreatedBy']['full_name'], array('controller' => 'users', 'action' => 'view', $group['GroupCreatedBy']['id'])); ?>
-				</td>
-				<td class="actions">
-					<?php echo $this->Html->link(__('View'), array('action' => 'view', $group['Group']['id'])); ?>
-					<?php echo $this->Html->link(__('Edit'), array('action' => 'edit', $group['Group']['id'])); ?>
-					<?php echo $this->Form->postLink(__('Delete'), array('action' => 'delete', $group['Group']['id']), null, __('Are you sure you want to delete # %s?', $group['Group']['id'])); ?>
-				</td>
-			</tr>
-		<?php endforeach; ?>
-		</table>
-
-		<?php echo $this->BootstrapPaginator->pagination(); ?>
-	</div>
-	<div class="span3">
-		<div class="well" style="padding: 8px 0; margin-top:8px;">
-		<ul class="nav nav-list">
-			<li class="nav-header"><?php echo __('Actions'); ?></li>
-			<li><?php echo $this->Html->link(__('New %s', __('Group')), array('action' => 'add')); ?></li>
-			<li><?php echo $this->Html->link(__('List %s', __('Users')), array('controller' => 'users', 'action' => 'index')); ?> </li>
-			<li><?php echo $this->Html->link(__('New %s', __('Group Created By')), array('controller' => 'users', 'action' => 'add')); ?> </li>
-		</ul>
-		</div>
-	</div>
-</div>
+<?php echo $this->BootstrapPaginator->pagination(); ?>
