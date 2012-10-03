@@ -24,8 +24,8 @@ Configure::write('AclManager.aros', array('Group', 'User'));
  * Replace {alias} with ARO alias
  * Configure::write('AclManager.{alias}.limit', 3)
  */
-// Configure::write('AclManager.Role.limit', 3);
-
+Configure::write('AclManager.Group.limit', 3);
+Configure::write('AclManager.User.limit', 3);
 /**
  * Routing Prefix
  * Set the prefix you would like to restrict the plugin to

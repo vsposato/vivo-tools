@@ -64,11 +64,11 @@ class AppController extends Controller {
 
 	 public function beforeFilter() {
         //Configure AuthComponent
+		 $this->Auth->authenticate = array('Form');
          $this->Auth->authorize = array(
              'Controller',
              'Actions' => array('actionPath' => 'controllers')
          );
-		 $this->Auth->authenticate = array('Form');
 		 $this->Auth->loginAction = array(
 		 	'admin' => false,
 		 	'controller' => 'users',
