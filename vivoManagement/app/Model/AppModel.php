@@ -42,9 +42,9 @@ class AppModel extends Model {
 public function beforeSave() {
 
         // We will need to check to see if the modified date is set, and if so clear it - this will force it to repopulate
-        if ( array_key_exists('modified',$this->data[$this->name]) && (! empty($this->data[$this->name]['modified']) || isset($this->data[$this->name]['modified']))) {
+        /*(if ( array_key_exists('modified',$this->data[$this->name]) && (! empty($this->data[$this->name]['modified']) || isset($this->data[$this->name]['modified']))) {
                 unset($this->data[$this->name]['modified']);
-        }
+        }*/
 
         // Required in order to get save to occur
         return true;

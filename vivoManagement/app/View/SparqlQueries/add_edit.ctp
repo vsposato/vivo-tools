@@ -56,11 +56,19 @@
 
 <script type="text/javascript">
 	$(document).ready(function(){
-		$('#parameter').toggle();
-		$('label[for="SparqlQueryParameter"]').toggle();
-		$('span.help-inline p.parameterHelp').toggle();
-		$('#parameterType').toggle();
-		$('label[for="SparqlQueryParameterType"]').toggle();
+        if($('#parameterCheckbox').is(':checked')) {
+            $('#parameter').show();
+            $('label[for="SparqlQueryParameter"]').show();
+            $('span.help-inline p.parameterHelp').show();
+            $('#parameterType').show();
+            $('label[for="SparqlQueryParameterType"]').show();
+        } else {
+            $('#parameter').hide();
+            $('label[for="SparqlQueryParameter"]').hide();
+            $('span.help-inline p.parameterHelp').hide();
+            $('#parameterType').hide();
+            $('label[for="SparqlQueryParameterType"]').hide();
+        }
 	});
 	$('input[name="data[SparqlQuery][parameterized]"]').click(function(){
 		$('#parameter').toggle(this.checked);

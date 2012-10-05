@@ -84,29 +84,59 @@ class UsersController extends AppController {
  */
 	public function admin_add() {
 		if ($this->request->is('post')) {
-			$this->User->create();
-			if ($this->User->save($this->request->data)) {
-				$this->Session->setFlash(__('%s saved.', __('User')),
-						'alert',
-						array(
-							'plugin' => 'TwitterBootstrap',
-							'class' => 'alert-success'
-						)
-				);
-				$this->redirect(array('admin' => true, 'controller' => 'users', 'action' => 'index'));
-			} else {
-				$this->Session->setFlash(__('%s not saved.', __('User')),
-					'alert',
-					array(
-						'plugin' => 'TwitterBootstrap',
-						'class' => 'alert-error'
-					)
-				);
-			}
+            if ( $this->request->data['User']['password'] == $this->request->data['User']['retype_password'] ){
+                if ($this->User->validPassword($this->request->data['User']['password'])) {
+                    $this->User->create();
+                    if ($this->User->save($this->request->data)) {
+                        $this->Session->setFlash(__('%s saved.', __('User')),
+                                'alert',
+                                array(
+                                    'plugin' => 'TwitterBootstrap',
+                                    'class' => 'alert-success'
+                                )
+                        );
+                        $this->redirect(array('admin' => true, 'controller' => 'users', 'action' => 'index'));
+                    } else {
+                        $this->Session->setFlash(__('%s not saved.', __('User')),
+                            'alert',
+                            array(
+                                'plugin' => 'TwitterBootstrap',
+                                'class' => 'alert-error'
+                            )
+                        );
+                    }
+                } else {
+                    // Password didn't meet complexity requirements
+                    $this->Session->setFlash(
+                        __('The %s was did not meet password complexity requirements! Minimum 8 characters with at least 1 number or special character, 1 lowercase letter,  and 1 uppercase!', __('password')),
+                        'alert',
+                        array(
+                            'plugin' => 'TwitterBootstrap',
+                            'class' => 'alert-error'
+                        )
+                    );
+                }
+            } else {
+                $this->Session->setFlash(
+                    __('The %s could not be saved - your passwords did not match. Please, try again.', __('user')),
+                    'alert',
+                    array(
+                        'plugin' => 'TwitterBootstrap',
+                        'class' => 'alert-error'
+                    )
+                );
+            }
 		}
-		$createdBies = $this->User->CreatedBy->find('list');
-		$modifiedBies = $this->User->ModifiedBy->find('list');
-		$this->set(compact('createdBies', 'modifiedBies'));
+        if ($this->Session->read('FULL_ACCESS_GRANTED')) {
+            $groups = $this->User->Group->find('list');
+        } else {
+            $groups = $this->Group->find('list', array(
+                'conditions' => array(
+                    'id >' => 1
+                )
+            ));
+        }
+        $this->set(compact('groups'));
 		$this->render('admin_add_edit');
 	}
 
@@ -229,9 +259,20 @@ class UsersController extends AppController {
  */
 	public function logout() {
 		$this->Auth->logout();
+        $this->Session->destroy();
 		$this->redirect(array('admin' => false, 'controller' => 'users', 'action' => 'login'));
 
 	}
+
+    public function homePageFileOutput($id = null) {
+        $this->User->id = $id;
+        if (!$this->User->exists()) {
+            throw new NotFoundException(__('Invalid %s', __('user')));
+        }
+        $this->set('user', $this->User->read(null, $id));
+        $userFiles = $this->_getUserFileInformation($this->User->field('username'));
+        return $userFiles;
+    }
 
     private function _getUserFileInformation($username) {
         // Setup configuration reader

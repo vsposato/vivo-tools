@@ -145,8 +145,8 @@ class User extends AppModel {
 				//'last' => false, // Stop validation after this rule
 				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
-			'inList' => array(
-				'rule' => array('inList', array(0,1)),
+			'boolean' => array(
+				'rule' => array('boolean'),
 				'message' => 'Your active flag can only be a true or false!',
 				'allowEmpty' => false,
 				'required' => true,

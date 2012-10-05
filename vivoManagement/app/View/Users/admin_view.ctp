@@ -48,25 +48,35 @@
         </tr>
         </thead>
         <tbody>
-        <?php foreach ($userFiles as $userFile){
-            $displayFile = new File($baseDirectory . $user['User']['username'] . '/' . $userFile);
-            //debug($displayFile->info());
-            //debug($displayFile); ?>
+        <?php if (count($userFiles) > 0) {
+            foreach ($userFiles as $userFile){
+                $displayFile = new File($baseDirectory . $user['User']['username'] . '/' . $userFile);
+                //debug($displayFile->info());
+                //debug($displayFile); ?>
+            <tr>
+                <td><?php echo $userFile['fileName']; ?>&nbsp;</td>
+                <td><?php echo $this->Number->toReadableSize($userFile['fileSize']); ?>&nbsp;</td>
+                <td><?php echo $userFile['fileType']; ?>&nbsp;</td>
+                <td><?php echo $this->Time->format('m-d-Y H:i:s',$userFile['fileModified']); ?>&nbsp;</td>
+                <td class="actions">
+                    <div class="btn-group">
+                        <?php
+                        echo $this->Html->link(__('Download'), array('controller' => 'sparql_queries', 'action' => 'sendFileDownload', '?' => array('filename' => $userFile['fileName'], 'directory' => $userFile['fileDir'], 'extension' => $userFile['fileExt'])), array('class' => 'btn btn-mini'));
+                        echo $this->Html->link(__('Delete'), array('action' => 'deleteUserFile', '?' => array('deleteUserFile' => $userFile['filePath'])), array('class' => 'btn btn-mini btn-danger'), __('Are you sure you want to delete  %s?', $userFile['fileName']));
+                        ?>
+                    </div>
+                </td>
+            </tr>
+                <?php
+            }
+        } else { ?>
         <tr>
-            <td><?php echo $userFile['fileName']; ?>&nbsp;</td>
-            <td><?php echo $this->Number->toReadableSize($userFile['fileSize']); ?>&nbsp;</td>
-            <td><?php echo $userFile['fileType']; ?>&nbsp;</td>
-            <td><?php echo $this->Time->format('m-d-Y H:i:s',$userFile['fileModified']); ?>&nbsp;</td>
-            <td class="actions">
-                <div class="btn-group">
-                    <?php
-                    echo $this->Html->link(__('Download'), array('controller' => 'sparql_queries', 'action' => 'sendFileDownload', '?' => array('filename' => $userFile['fileName'], 'directory' => $userFile['fileDir'], 'extension' => $userFile['fileExt'])), array('class' => 'btn btn-mini'));
-                    echo $this->Html->link(__('Delete'), array('action' => 'deleteUserFile', '?' => array('deleteUserFile' => $userFile['filePath'])), array('class' => 'btn btn-mini btn-danger'), __('Are you sure you want to delete  %s?', $userFile['fileName']));
-                    ?>
-                </div>
-            </td>
+            <td colspan='5'>This user has no files currently in their directory! They should go do some SPARQL!</td>
         </tr>
-            <?php } ?>
+            <?php
+        }
+        ?>
+
         </tbody>
         <tfoot>
         </tfoot>

@@ -48,7 +48,8 @@
             </tr>
         </thead>
     <tbody>
-        <?php foreach ($userFiles as $userFile){
+        <?php if (count($userFiles) > 0) {
+            foreach ($userFiles as $userFile){
             $displayFile = new File($baseDirectory . $user['User']['username'] . '/' . $userFile);
             //debug($displayFile->info());
             //debug($displayFile); ?>
@@ -66,7 +67,16 @@
                 </div>
             </td>
         </tr>
-        <?php } ?>
+        <?php
+            }
+        } else { ?>
+        <tr>
+            <td colspan='5'>You have no files currently in your directory! Go do some SPARQL!</td>
+        </tr>
+    <?php
+        }
+    ?>
+
     </tbody>
     <tfoot>
     </tfoot>

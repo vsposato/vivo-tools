@@ -25,25 +25,33 @@ class Group extends AppModel {
 		'group_name' => array(
 			'notempty' => array(
 				'rule' => array('notempty'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
+				'message' => 'You must provide a group name!',
+				'allowEmpty' => false,
+				'required' => true,
 				//'last' => false, // Stop validation after this rule
 				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
+            'isUnique' => array(
+                'rule' => array('isUnique'),
+                'message' => 'This group name is already taken! Please choose another.',
+                'allowEmpty' => false,
+                'required' => true,
+                //'last' => false, // Stop validation after this rule
+                //'on' => 'create', // Limit validation to 'create' or 'update' operations
+            ),
 			'maxlength' => array(
-				'rule' => array('maxlength'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
+				'rule' => array('maxlength', 50),
+				'message' => 'Your group name can be no more than 50 characters long!',
+				'allowEmpty' => false,
+				'required' => true,
 				//'last' => false, // Stop validation after this rule
 				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
 			'minlength' => array(
-				'rule' => array('minlength'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
+				'rule' => array('minlength', 5),
+				'message' => 'Your group name must be at least 5 characters long!',
+				'allowEmpty' => false,
+				'required' => true,
 				//'last' => false, // Stop validation after this rule
 				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),

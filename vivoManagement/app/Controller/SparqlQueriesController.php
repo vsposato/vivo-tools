@@ -28,9 +28,14 @@ class SparqlQueriesController extends AppController {
  *
  * @return void
  */
-	public function index() {
+	public function index($id = null) {
 		$this->SparqlQuery->recursive = 0;
-		$this->set('sparqlQueries', $this->paginate());
+        if ($id) {
+            $this->set('sparqlQueries', $this->paginate('SparqlQuery', array('SparqlQuery.created_by' => $id)));
+        } else {
+            $this->set('sparqlQueries', $this->paginate());
+        }
+
 	}
 
 /**

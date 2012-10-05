@@ -24,7 +24,7 @@
 						}
 						echo $this->BootstrapHtml->tag('li','',array('class' => 'divider-vertical'));
 						if ( ! AuthComponent::user('id') ) {
-							echo $this->BootstrapHtml->tag('li', $this->BootstrapHtml->link('Request Access', array('plugin' => '', 'admin' => false, 'controller' => 'profiles', 'action' => 'register'), array('escape' => false)), array('escape' => false));
+							//echo $this->BootstrapHtml->tag('li', $this->BootstrapHtml->link('Request Access', array('plugin' => '', 'admin' => false, 'controller' => 'profiles', 'action' => 'register'), array('escape' => false)), array('escape' => false));
 						}
 					?>
 				</ul>
@@ -63,7 +63,8 @@
 									<a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
 									<ul class="dropdown-menu">
 										<?php
-											echo $this->BootstrapHtml->tag('li', $this->BootstrapHtml->link(__('Giftr Users'), array('plugin' => '', 'admin' => true, 'controller' => 'profiles', 'action' => 'index'), array('class' => '')), array('escape' => false));
+											echo $this->BootstrapHtml->tag('li', $this->BootstrapHtml->link(__('System Users'), array('plugin' => '', 'admin' => true, 'controller' => 'users', 'action' => 'index'), array('class' => '')), array('escape' => false));
+                                            echo $this->BootstrapHtml->tag('li', $this->BootstrapHtml->link(__('System Groups'), array('plugin' => '', 'admin' => true, 'controller' => 'groups', 'action' => 'index'), array('class' => '')), array('escape' => false));
 											echo $this->BootstrapHtml->tag('li', $this->BootstrapHtml->link(__('ACL Manager'), array('plugin' => 'acl_manager', 'admin' => true, 'controller' => 'acl', 'action' => 'index'), array('class'=>'')), array('escape' => false));
 										?>
 									</ul>

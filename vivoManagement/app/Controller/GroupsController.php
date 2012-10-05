@@ -72,9 +72,7 @@ class GroupsController extends AppController {
 				);
 			}
 		}
-		$groupCreatedBies = $this->Group->GroupCreatedBy->find('list');
-		$createdBies = $this->Group->CreatedBy->find('list');
-		$this->set(compact('groupCreatedBies', 'createdBies'));
+        $this->render('admin_add_edit');
 	}
 
 /**
@@ -112,9 +110,7 @@ class GroupsController extends AppController {
 		} else {
 			$this->request->data = $this->Group->read(null, $id);
 		}
-		$groupCreatedBies = $this->Group->GroupCreatedBy->find('list');
-		$createdBies = $this->Group->CreatedBy->find('list');
-		$this->set(compact('groupCreatedBies', 'createdBies'));
+        $this->render('admin_add_edit');
 	}
 
 /**
