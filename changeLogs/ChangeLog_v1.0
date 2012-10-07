@@ -1,0 +1,35 @@
+Vincent Sposato (33):
+      Updated README and .gitignore to reflect preparation for first tool
+      Added initial revision of the vivoCSV tool - to output a SPARQL query to well-formed CSV file
+      Initial run at starting the VIVO RDF export functions
+      Still working on parsing RDFXML
+      Completed the vivoRDFExport functionality - it works as expected. TODO: Add the functionality to make unique parameter entries
+      Added the microtime_float functionality to calculate seconds correctly
+      Update the README file to reflect changes and additions from the toolset
+      Initial commit of cakephp
+      Baked controllers, models, views for sparql_queries
+      Removed unneeded admin routing within the SPARQL query controller, updated model to reflect validation, and updated login to allow either Shibboleth or normal login
+      Started building the component for SPARQL to handle queries and returns
+      Update SPARQL component to account for functions required
+      More updates to SPARQL component to transfer functionality from individual functions created previously
+      Updated SPARQL component
+      Updated SPARQL component and finished most of the functionality needed for CSV output - testing still needed
+      More work on the SPARQL Component filling out functionality
+      SPARQL Component almost done for outputting CSV files
+      SPARQL Component completed for CSV/TSV output of non-parameterized queries - still need to get Table working to display a table of results in the browser
+      Built sparql query parameters mvc and worked more on the SPARQL query interface - still have a long way to go
+      Worked on adding modal for adding query parameters - more work to do on this
+      Working on Parameterizing queries
+      Updated SPARQL query add / edit to allow for a single parameter in the query, started working on adding view of files that have been generated, and now have single RDF with no parameters being outputted no problem
+      Working on file view table for user's view
+      Completed the file display on the user view page, and am almost done with the output of parameterized RDF. Need some work on the XML reader functionality, as it fails miserably in cakephp where it didn't in cli
+      Completed functionality for normal csv, tsv, and rdf plus parameterizing an rdf query. Still need to make a way to get a visible table return with export, and to polish the interface
+      Clean up mislabeled code and preparing to add parameterized SELECT statement output
+      Added sidebars and did some other cleanup to prepare the application to be deployed for testing
+      All query stuff is working, and all of the major features are ready. Still working on ACL and some other minor things
+      More work on ACL - still a little left and then some polish
+      Got ACLs working - time to use some cleanup and get everything else working correctly
+      I believe we are done - and all changes should now be ready to be tested
+      Finishing touches applied - should be ready.
+      leftover deleted file to be cleaned up
+
