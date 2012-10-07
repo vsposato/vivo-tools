@@ -37,6 +37,8 @@
     <tr>
         <td colspan='5'>
             <?php
+            echo $this->Html->link(__('All Queries'), array('controller'=>'sparql_queries', 'action' => 'index'), array('class' => 'btn btn-medium'));
+            echo "&nbsp;";
             echo $this->Html->link(__('My Queries Only'), array('controller'=>'sparql_queries', 'action' => 'index', $loggedUser['id']), array('class' => 'btn btn-medium'));
             ?>
         </td>

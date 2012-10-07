@@ -74,6 +74,8 @@ class UsersController extends AppController {
         if (!$this->User->exists()) {
             throw new NotFoundException(__('Invalid %s', __('user')));
         }
+        $userFiles = $this->_getUserFileInformation($this->User->field('username'));
+        $this->set('userFiles', $userFiles);
         $this->set('user', $this->User->read(null, $id));
     }
 
@@ -151,8 +153,14 @@ class UsersController extends AppController {
 		if (!$this->User->exists()) {
 			throw new NotFoundException(__('Invalid %s', __('user')));
 		}
+        debug($this->request->data);
 		if ($this->request->is('post') || $this->request->is('put')) {
 			$this->request->data['User']['full_name'] = $this->request->data['User']['last_name'] . ", " . $this->request->data['User']['first_name'];
+            // If we do not submit a password then remove validation for password and unset it from the form
+            if (empty($this->request->data['User']['password']) || empty($this->request->data['User']['retype_password'])) {
+                $this->User->validator()->remove('password');
+                unset($this->request->data['User']['password']);
+            }
 			if ($this->User->save($this->request->data)) {
 				$this->Session->setFlash(__('The %s has been saved.', __('user')),
 					'alert',
@@ -174,7 +182,20 @@ class UsersController extends AppController {
 		} else {
 			$this->request->data = $this->User->read(null, $id);
 		}
-		$this->render('admin_add_edit');
+        if ($this->Session->read('FULL_ACCESS_GRANTED')) {
+            $groups = $this->User->Group->find('list');
+        } else {
+            $groups = $this->Group->find('list', array(
+                'conditions' => array(
+                    'id >' => 1
+                )
+            ));
+        }
+        // Clear the passwords before we send it back to the view, they should have to retype each time
+        unset($this->request->data['User']['password']);
+        unset($this->request->data['User']['retype_password']);
+        $this->set(compact('groups'));
+        $this->render('admin_add_edit');
 	}
 
 /**

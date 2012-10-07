@@ -25,14 +25,20 @@
             'required' => 'required',
             'helpInline' => '<span class="label label-important">' . __('Required') . '</span>&nbsp;')
         );
-        echo $this->BootstrapForm->input('password', array(
-            'required' => 'required',
-            'helpInline' => '<span class="label label-important">' . __('Required') . '</span>&nbsp;')
-        );
-        echo $this->BootstrapForm->input('retype_password', array(
-                'required' => 'required',
-                'helpInline' => '<span class="label label-important">' . __('Required') . '</span>&nbsp;')
-        );
+        if ($this->request['action'] === 'admin_edit') {
+            echo $this->BootstrapForm->input('password');
+            echo $this->BootstrapForm->input('retype_password');
+        } else {
+            echo $this->BootstrapForm->input('password', array(
+                    'required' => 'required',
+                    'helpInline' => '<span class="label label-important">' . __('Required') . '</span>&nbsp;')
+            );
+            echo $this->BootstrapForm->input('retype_password', array(
+                    'type' => 'password',
+                    'required' => 'required',
+                    'helpInline' => '<span class="label label-important">' . __('Required') . '</span>&nbsp;')
+            );
+        }
         echo $this->BootstrapForm->input('active', array(
                 'required' => 'required',
                 'options' => array( 0 => 'Inactive', 1 => 'Active'),

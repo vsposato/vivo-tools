@@ -157,7 +157,7 @@ class User extends AppModel {
 		'password' => array(
 			'notempty' => array(
 				'rule' => array('notempty'),
-				'message' => 'You must provide a valid email address!',
+				'message' => 'You must provide a valid password! It must have at least 5 characters, and 3 of 4 of the following: capital, lower case, digit, and special character',
 				'allowEmpty' => false,
 				'required' => true,
 				//'last' => false, // Stop validation after this rule
