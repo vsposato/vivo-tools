@@ -46,12 +46,12 @@ class SparqlComponent extends Component {
 			$this->sparqlQuery = $sparqlQuery;
 		}
 		// Check to see if the output filename came in
-		if ($outputFilename == null || ! isset($outputFilename) ) {
+		if (($outputFilename == null || ! isset($outputFilename)) && $outputFormat !== 'array' ) {
 			// No output filename submitted so return a false
 			return false;
 		} else {
 			// We passed an output filename so lets set it
-			$this->outputFilename = $outputFilename;
+			$this->outputFilename = $outputFormat !== 'array' ? $outputFilename : null;
 		}
 		// Check to see if the output format came in
 		if ($outputFormat == null || ! isset($outputFormat) ) {

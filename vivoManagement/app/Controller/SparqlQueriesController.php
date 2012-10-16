@@ -232,6 +232,7 @@ class SparqlQueriesController extends AppController {
 								'class' => 'alert-error'
 							)
 						);
+                        $this->redirect(array('action' => 'execute', $id));
 					}
 				break;
 				case 'rdf':
@@ -270,6 +271,7 @@ class SparqlQueriesController extends AppController {
 								'class' => 'alert-error'
 							)
 						);
+                        $this->redirect(array('action' => 'execute', $id));
 					}
 				break;
 				case 'tsv':
@@ -299,10 +301,34 @@ class SparqlQueriesController extends AppController {
 								'class' => 'alert-error'
 							)
 						);
+                        $this->redirect(array('action' => 'execute', $id));
 					}
 				break;
 				case 'array':
+                    $returnedQuery = $this->Sparql->generateResults($this->request->data['SparqlQuery']['sparql_query'], null, 'array');
 
+                    if ($returnedQuery) {
+                        $this->Session->setFlash(
+                            __('The %s completed successfully. Please review the information below!!', __('sparql query')),
+                            'alert',
+                            array(
+                                'plugin' => 'TwitterBootstrap',
+                                'class' => 'alert-success'
+                            )
+                        );
+                        $this->set('returnedQuery', $returnedQuery);
+                        $this->render('table_view');
+                    } elseif (!$returnedQuery) {
+                        $this->Session->setFlash(
+                            __('The %s was not completed successfully!', __('sparql query')),
+                            'alert',
+                            array(
+                                'plugin' => 'TwitterBootstrap',
+                                'class' => 'alert-error'
+                            )
+                        );
+                        $this->redirect(array('action' => 'execute', $id));
+                    }
 				break;
 			}
 
