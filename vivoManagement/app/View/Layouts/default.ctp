@@ -17,20 +17,22 @@
 		padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
 	}
 	</style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script>
 	<?php
 		echo $this->Html->css('bootstrap-responsive');
-		echo $this->Html->css('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/start/jquery-ui.css');
+		echo $this->Html->css('https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/start/jquery-ui.css');
         echo $this->Html->script('https:////ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js');
         echo $this->Html->script('https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js');
+        echo $this->Html->script('jquery.tablesorter');
+        echo $this->Html->script('jquery.tablesorter.pager');
 	?>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script>
 	<?php
 		echo $this->Html->script('bootstrap');
 		echo $this->fetch('script');
 	?>
 	<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
 	<!--[if lt IE 9]>
-	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 	<![endif]-->
 
 	<!-- Le fav and touch icons -->
