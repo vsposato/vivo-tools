@@ -201,7 +201,7 @@ class SparqlQueriesController extends AppController {
                     $filename = $this->_generateFileDownloadName($this->request->data['SparqlQuery']['name'], '.csv');
 					// Create the name of the file we will be saving
 					$fullFileName = $this->_generateFileDownloadDirectory() . $filename;
-                    if ($this->request->data['Execute']['parameter_file']) {
+                    if (isset($this->request->data['Execute']['parameter_file'])) {
                         //debug($this->request->data['Execute']['parameter_file']['tmp_name']);
                         // There are parameters for this we need to process
                         $parameterData = $this->_readParameterFile($this->request->data['Execute']['parameter_file']['tmp_name']);
