@@ -170,11 +170,11 @@ Configure::write('Dispatcher.filters', array(
  * Configure each of the plugins we have installed
  *
  */
+CakePlugin::load('DebugKit', array('bootstrap' => false, 'routes' => false));
 CakePlugin::load('AclManager', array('bootstrap' => true, 'routes' => false));
 CakePlugin::load('AclExtras', array('bootstrap' => false, 'routes' => false));
 CakePlugin::load('TwitterBootstrap', array('bootstrap' => false, 'routes' => false));
 CakePlugin::load('CakePdf', array('bootstrap' => true, 'routes' => true));
-CakePlugin::load('DebugKit', array('bootstrap' => false, 'routes' => false));
 
 /**
  * Configures default file logging options

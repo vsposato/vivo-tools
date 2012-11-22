@@ -60,7 +60,7 @@ class AppController extends Controller {
 	 	'RequestHandler',
 	 	'Session',
 	 	'Security',
-        'DebugKit.Toolbar'
+        'DebugKit.Toolbar'=> array('autoRun' => true)
 	 );
 
 	 public function beforeFilter() {
